@@ -405,15 +405,20 @@ User query: "cloud architecture, team leadership" + filters: {department: "Engin
 │                                                     │
 │  4. pgvector cosine similarity search               │
 │     SELECT employees ORDER BY                       │
-│     embedding <=> query_vector LIMIT 50             │
+│     embedding <=> query_vector LIMIT 100            │
 │     (HNSW index — ~5ms for 1,400 profiles)          │
 │                                                     │
-│  5. Hybrid re-ranking                               │
+│  5. Hybrid re-ranking + score filter                │
 │     score = 0.7 × vector_score                      │
 │           + 0.3 × PostgreSQL full-text (ts_rank)    │
+│     Discard results with hybrid score < 0.70        │
 │                                                     │
-│  6. Cache result in Redis                           │
-│     Key: search:{sha256(query+filters)}  TTL: 5min  │
+│  6. Paginate — 10 results per page                  │
+│     Return page N via offset / cursor               │
+│                                                     │
+│  7. Cache result in Redis                           │
+│     Key: search:{sha256(query+filters+page)}        │
+│     TTL: 5min                                       │
 └─────────────────────────────────────────────────────┘
       │
       ▼
@@ -1018,7 +1023,7 @@ Quick-reference summary:
 | 3 | ~~SSO provider~~ ✅ **Answered** — Azure Active Directory (MSAL / OIDC) | nemanjaninkovic-1 | 🔴 High | ✅ Answered |
 | 4 | ~~Sample anonymized Excel from HR~~ ✅ **Answered** — Excel on SharePoint, HR is source of truth | nemanjaninkovic-1 | 🔴 High | ✅ Answered |
 | 5 | Search ranking — include recency of last review? | engveselin | 🔴 High | ⬜ Open |
-| 6 | Search results — include employees with 0 matching skills? | engveselin | 🔴 High | ⬜ Open |
+| 6 | ~~Search results — 0 matching skills?~~ ✅ **Answered** — min 70% hybrid score; 10 per page | engveselin | 🔴 High | ✅ Answered |
 | 7 | Pillar 01 MVP scope — what is in vs. deferred? | DusanEngIt | 🔴 High | ⬜ Open |
 | 8 | ~~Cloud provider~~ ✅ **Answered** — infrastructure provided by ENG | nemanjaninkovic-1 | 🟡 Medium | ✅ Answered |
 | 9 | Proficiency validation — self-reported or manager-confirmed? | nemanjaninkovic-1 | 🟡 Medium | ⬜ Open |
@@ -1124,18 +1129,29 @@ The current hybrid score formula is `0.7 × cosine_similarity + 0.3 × ts_rank`.
 
 ---
 
-#### Q6 — Search Results: Show Employees with 0 Matching Skills? 🔴 High · engveselin
+#### Q6 — Search Results ✅ Answered · engveselin
 
-**What we need to know:**
+**Answer:**
 
-- When a manager searches for "Python developer", should employees with no Python skills appear at the bottom of the result list, or be excluded entirely?
-- If included: is there a minimum score threshold below which results are hidden (e.g., cosine similarity < 0.2)?
-- Should a "no match" indicator be shown on the result card?
+- **Minimum match threshold: 70%** — results with a hybrid score below `0.70` are excluded from the response.
+- **Page size: 10 results per page** — search returns at most 10 employees per page.
+- Zero-match (low-relevance) employees are not shown.
 
-**Why it matters:**
-Including zero-match employees increases result set size significantly (up to all 1,400 records). At that scale, PostgreSQL's `ORDER BY score` over a full scan is slower than a filtered HNSW index query. The decision directly affects the search query strategy in `apps/ai-service/search.py` and the pagination UX.
+**Implementation:**
 
-**Current assumption:** Results below a minimum cosine threshold (0.2) are excluded; zero-match employees are not returned.
+```python
+# After hybrid re-ranking:
+results = [r for r in ranked if r.hybrid_score >= 0.70]
+
+# Paginate
+page_size = 10
+page = results[offset : offset + page_size]
+total_pages = ceil(len(results) / page_size)
+```
+
+- `POST /api/search` accepts `page` (default `1`) and returns `{results, page, total_pages, total_count}`.
+- Page number is included in the Redis cache key: `search:{sha256(query+filters)}:page:{n}`, TTL 5 min.
+- Frontend shows "No results above 70% match" when the filtered list is empty.
 
 ---
 
@@ -1249,6 +1265,7 @@ The Celery `send_notification` task currently supports both in-app and email cha
 | Role category | e.g., "PM", "Dev", "Architect" | Derived from `title` or explicit field |
 
 **Implementation notes:**
+
 - Filters passed as optional params to `POST /api/search`: `department`, `title`.
 - Pre-filtering reduces the HNSW candidate set before the `<=>` cosine operator.
 - Redis cache key includes filter values: `search:{sha256(query + sorted(filters))}`.

@@ -48,7 +48,7 @@ celery -A app.celery worker --loglevel=info                      # local Celery 
 | ---------- | ----------- |
 | **pgvector over Qdrant** | Reuses Postgres; same speed at 1,400 profiles with HNSW index; no extra container |
 | **paraphrase-multilingual-MiniLM-L12-v2** | Handles Serbian, English, Italian, Albanian + 46 other languages on CPU; 420MB RAM; Apache 2.0; ~10ms |
-| **Hybrid search score** | `0.7 × cosine_similarity + 0.3 × ts_rank` |
+| **Hybrid search score** | `0.7 × cosine_similarity + 0.3 × ts_rank`; min threshold 0.70; 10 results per page |
 | **Redis caching** | search TTL 5min; profile TTL 1h; taxonomy TTL 24h |
 | **Celery for async** | Excel import (batches of 100); Workday sync at 02:00; profile re-embedding; Excel export |
 | **UUID primary keys** | All tables use `gen_random_uuid()` |
@@ -89,4 +89,4 @@ Custom roles are defined by HR Coordinator via `POST /api/roles/custom`. Permiss
 
 ## Open Questions
 
-See [Section 17 of the spec](./README.md) — Workday API type, brand colors, and SMTP config are unresolved before implementation.
+See [Section 17 of the spec](./README.md) — Workday API type and SMTP config are unresolved before implementation.
