@@ -23,11 +23,18 @@ applyTo: "apps/ai-service/**"
 ## Hybrid Search Score
 
 ```python
-score = 0.7 * vector_cosine_similarity + 0.3 * ts_rank
+# recency_score: 1.0 if reviewed within 6 months, decays to 0.5 floor at 24+ months
+hybrid_score = (
+    0.60 * vector_cosine_similarity
+  + 0.25 * ts_rank
+  + 0.15 * recency_score(last_reviewed_at)  # see search.py recency_score()
+)
 ```
 
 - **Minimum threshold: 0.70** — discard any result with `hybrid_score < 0.70` before returning.
 - **Page size: 10** — return at most 10 results per page.
+- `recency_score` returns `1.0` for reviews within 6 months, decays linearly to `0.5` at 24 months, floor `0.5` for never-reviewed.
+- A ⚠️ stale-profile badge is shown on the result card when `last_reviewed_at` is older than 12 months or `NULL`.
 - Never change the score weights without benchmarking against the full 1,400-profile dataset.
 
 ## pgvector Query Pattern

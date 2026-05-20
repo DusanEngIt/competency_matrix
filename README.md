@@ -312,8 +312,7 @@ MY PROFILE
   ├── Basic info (read-only, synced from Workday)
   ├── Hard Skills tab
   │   ├── List of skills with proficiency level + years of exp
-  │   └── Editable only during active review window OR always
-  │       (depending on Q9 answer — see Open Questions)
+  │   └── Editable at any time; saved as PENDING until manager confirms
   ├── Soft Skills tab
   │   └── Same as Hard Skills
   ├── Audit History tab
@@ -485,8 +484,9 @@ User query: "cloud architecture, team leadership" + filters: {department: "Engin
 │     (HNSW index — ~5ms for 1,400 profiles)          │
 │                                                     │
 │  5. Hybrid re-ranking + score filter                │
-│     score = 0.7 × vector_score                      │
-│           + 0.3 × PostgreSQL full-text (ts_rank)    │
+│     score = 0.60 × vector_score                     │
+│           + 0.25 × PostgreSQL full-text (ts_rank)   │
+│           + 0.15 × recency_score(last_reviewed_at)  │
 │     Discard results with hybrid score < 0.70        │
 │                                                     │
 │  6. Paginate — 10 results per page                  │
@@ -1098,11 +1098,11 @@ Quick-reference summary:
 | 2 | ~~Company brand colors~~ ✅ **Answered** — ENG brand palette extracted from eng.it | ilija-radonjic | 🔴 High | ✅ Answered |
 | 3 | ~~SSO provider~~ ✅ **Answered** — Azure Active Directory (MSAL / OIDC) | nemanjaninkovic-1 | 🔴 High | ✅ Answered |
 | 4 | ~~Sample anonymized Excel from HR~~ ✅ **Answered** — Excel on SharePoint, HR is source of truth | nemanjaninkovic-1 | 🔴 High | ✅ Answered |
-| 5 | Search ranking — include recency of last review? | engveselin | 🔴 High | ⬜ Open |
+| 5 | ~~Search ranking~~ ✅ **Answered** — most recent review ranks highest (time-decay applied) | engveselin | 🔴 High | ✅ Answered |
 | 6 | ~~Search results — 0 matching skills?~~ ✅ **Answered** — min 70% hybrid score; 10 per page | engveselin | 🔴 High | ✅ Answered |
 | 7 | Pillar 01 MVP scope — what is in vs. deferred? | DusanEngIt | 🔴 High | ⬜ Open |
 | 8 | ~~Cloud provider~~ ✅ **Answered** — infrastructure provided by ENG | nemanjaninkovic-1 | 🟡 Medium | ✅ Answered |
-| 9 | Proficiency validation — self-reported or manager-confirmed? | nemanjaninkovic-1 | 🟡 Medium | ⬜ Open |
+| 9 | ~~Proficiency validation~~ ✅ **Answered** — self-reported, awaiting manager confirmation | nemanjaninkovic-1 | 🟡 Medium | ✅ Answered |
 | 10 | UI language | ilija-radonjic | 🟡 Medium | ✅ Answered |
 | 11 | Dispute flow for manager-edited proficiency | nemanjaninkovic-1 | 🟡 Medium | ⬜ Open |
 | 12 | SMTP configuration for email notifications | nemanjaninkovic-1 | 🟡 Medium | ⬜ Open |
@@ -1190,18 +1190,37 @@ The sync service is being designed around Workday REST + OAuth 2.0. If the actua
 
 ---
 
-#### Q5 — Search Ranking: Include Recency of Last Review? 🔴 High · engveselin
+#### Q5 — Search Ranking: Recency of Last Review ✅ Answered · engveselin
 
-**What we need to know:**
+**Answer:** The most recently reviewed profile ranks highest. A **time-decay factor** is applied to the hybrid score so that freshly reviewed skills carry more weight than stale ones.
 
-- Should the search score be penalized (or boosted) based on how recently an employee completed a review cycle?
-- If yes: what is the recency window (e.g., skills reviewed within 6 months count full; older skills decay)?
-- Should a "stale profile" warning appear in search results if no review was completed in the last cycle?
+**Updated score formula:**
 
-**Why it matters:**
-The current hybrid score formula is `0.7 × cosine_similarity + 0.3 × ts_rank`. Adding a time-decay component changes the scoring formula and requires `last_reviewed_at` to be indexed and passed into the ranking query. This affects both search result quality and the profile completeness indicator on the frontend.
+```python
+# recency_score: 1.0 if reviewed within 6 months, decays linearly to 0.5 at 24 months, 0.5 floor beyond
+import math
+from datetime import datetime, timezone
 
-**Current assumption:** Recency is not included in the score; profiles are ranked by skill match only.
+def recency_score(last_reviewed_at):
+    if last_reviewed_at is None:
+        return 0.5  # never reviewed — minimum weight
+    months_ago = (datetime.now(timezone.utc) - last_reviewed_at).days / 30
+    return max(0.5, 1.0 - (months_ago / 48))  # linear decay over 24 months
+
+hybrid_score = (
+    0.60 * vector_cosine_similarity
+  + 0.25 * ts_rank
+  + 0.15 * recency_score(last_reviewed_at)
+)
+```
+
+**Rules:**
+
+- Profiles reviewed within the last 6 months receive full recency weight.
+- Profiles never reviewed get a `0.5` recency floor — they still appear but rank lower.
+- A ⚠️ **"Stale profile"** badge appears on search result cards when `last_reviewed_at` is older than 12 months or `NULL`.
+- `last_reviewed_at` is indexed: `CREATE INDEX ON employees(last_reviewed_at)`.
+- Score weights changed from `0.7 / 0.3` to `0.60 / 0.25 / 0.15` — update `AGENTS.md` architecture decision and `ai-service.instructions.md`.
 
 ---
 
@@ -1268,19 +1287,37 @@ The current spec includes all of the above. If Workday sync or review cycles are
 
 ---
 
-#### Q9 — Proficiency Validation: Self-Reported or Manager-Confirmed? 🟡 Medium · nemanjaninkovic-1
+#### Q9 — Proficiency Validation ✅ Answered · nemanjaninkovic-1
 
-**What we need to know:**
+**Answer:** Proficiency is **self-reported by the employee** and enters a **"pending confirmation"** state until the Line Manager or Tech Lead confirms it.
 
-- After an employee self-reports a proficiency level, does it become immediately visible and searchable, or does it enter a "pending validation" state until a manager confirms it?
-- If validation is required: which role validates — LINE_MANAGER, TECH_LEAD, or both?
-- What happens if a manager never validates? Does the skill expire or remain pending indefinitely?
-- Should unvalidated skills appear in search results with a visual indicator?
+**Behaviour:**
 
-**Why it matters:**
-Unvalidated vs. validated proficiency is a DB schema concern (`validated_by UUID`, `validated_at TIMESTAMP`). It also affects the search index — if unvalidated skills are excluded from search, the embedding pipeline must filter by validation status before upserting vectors. Introducing validation after launch requires a migration and a re-embedding of all profiles.
+| State | Visible in search? | Profile badge |
+| ----- | ------------------ | ------------- |
+| `PENDING` | ✅ Yes — included in search with a "pending" indicator | ⏳ Awaiting confirmation |
+| `CONFIRMED` | ✅ Yes — full weight in scoring | ✅ Confirmed |
+| `REJECTED` | ❌ No — excluded from search | ❌ Rejected by manager |
 
-**Current assumption:** Self-reported proficiency is immediately live; managers can override (which triggers a notification). No formal validation gate.
+**Rules:**
+
+- Employee submits proficiency → status = `PENDING`, manager notified.
+- Manager confirms → status = `CONFIRMED`; employee notified.
+- Manager edits and saves a different value → new value is `CONFIRMED` immediately; old value replaced; employee notified.
+- If manager never acts: skill stays `PENDING` indefinitely (no auto-expiry in Pillar 01).
+- `LINE_MANAGER` or `TECH_LEAD` can confirm for their own subordinates / team members only.
+
+**DB schema additions:**
+
+```sql
+ALTER TABLE employee_skills
+  ADD COLUMN validation_status VARCHAR(10) NOT NULL DEFAULT 'PENDING'
+    CHECK (validation_status IN ('PENDING', 'CONFIRMED', 'REJECTED')),
+  ADD COLUMN validated_by UUID REFERENCES employees(id),
+  ADD COLUMN validated_at TIMESTAMPTZ;
+```
+
+**Search impact:** Pending skills are indexed and searchable but the search result card shows a ⏳ badge. Embedding is rebuilt on every save regardless of status.
 
 ---
 
