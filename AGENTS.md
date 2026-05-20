@@ -12,6 +12,7 @@ Cloud-hosted, fully Dockerized workforce platform for 1,400 employees — **Pill
 
 | Engineer | Role | Owns |
 | ---------- | ------ | ------ |
+| `engineer-2` | Tech Lead | Architecture decisions, cross-team coordination, code review, delivery oversight |
 | `nemanjaninkovic-1` | Backend Engineer | Auth, Workday sync, DB schema/migrations, Docker, all FastAPI routes, skill CRUD, Excel import/export, notifications |
 | `engineer-3` | AI / Search Engineer | Embedding model, pgvector search, hybrid re-ranking, caching |
 | `engineer-4` | Frontend Engineer | Next.js UI, search UI, profile pages, import/export wizard |

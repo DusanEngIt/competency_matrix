@@ -11,6 +11,7 @@
 
 | Engineer | Role | Owns |
 | ---------- | ------ | ------ |
+| **engineer-2** | 🏗️ Tech Lead | Architecture decisions, cross-team coordination, code review, delivery oversight |
 | **nemanjaninkovic-1** | ⚙️ Backend Engineer | Auth, Workday sync, DB schema/migrations, Docker setup, all FastAPI routes, skill CRUD, Excel import/export, notifications |
 | **engineer-3** | 🤖 AI / Search Engineer | Embedding model, pgvector search, semantic pipeline, caching |
 | **engineer-4** | 🎨 Frontend Engineer | Next.js UI, company branding, search UI, profile pages, import wizard |
