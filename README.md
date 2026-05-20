@@ -85,9 +85,17 @@ A **cloud-hosted, fully Dockerized workforce platform** for 1,400 employees that
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
 │ Line Manager         │ All profiles  │ Subordinates                     │
 │                      │               │ ⚠️ Notifies employee on change   │
+│                      │               │ ✦ Create custom skill matrices   │
+│                      │               │ ✦ Propose new skills for matrix  │
+│                      │               │ ✦ Trigger ad-hoc review cycles   │
+│                      │               │   (before/after project, outside │
+│                      │               │   standard semi-annual/annual)   │
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
 │ Tech Lead            │ All profiles  │ Team members                     │
 │                      │               │ ⚠️ Notifies employee on change   │
+│                      │               │ ✦ Create custom skill matrices   │
+│                      │               │ ✦ Propose new skills for matrix  │
+│                      │               │ ✦ Trigger ad-hoc review cycles   │
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
 │ HR Coordinator       │ All + analytics│ Taxonomy, bulk import, reviews  │
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
@@ -274,9 +282,23 @@ EXPORT FLOW
 ### 6.4 Review Cycles
 
 ```text
-Semi-annual  → automated reminders at T-14 days, manager dashboard
-Annual       → employee updates + manager sign-off required
-Project-based → triggered manually by HR or Manager
+STANDARD CYCLES (HR-managed)
+  Semi-annual  → automated reminders at T-14 days, manager dashboard
+  Annual       → employee updates + manager sign-off required
+
+AD-HOC CYCLES (Line Manager / Tech Lead)
+  Project-based → triggered manually before or after a project
+  Custom matrix → manager defines a specific skill set to evaluate
+                  for selected team members, outside standard schedule
+
+CUSTOM MATRIX FLOW
+  Manager creates matrix
+    → Selects or proposes skills (proposed skills go to HR for approval)
+    → Assigns matrix to one or more subordinates
+    → Sets deadline
+    → Employees notified to fill in proficiency for the listed skills
+    → Manager sees results when completed
+    → Results visible in employee profile audit history
 ```
 
 ---
@@ -493,7 +515,9 @@ apps/backend/
     │   ├── employee_skills.py    # skill entries per employee
     │   ├── search.py             # GET /search?q=...
     │   ├── import.py             # Excel upload + processing
+    │   ├── export.py             # Excel export (scoped by role)
     │   ├── reviews.py            # review cycles
+    │   ├── matrices.py           # custom skill matrices (Manager / Tech Lead)
     │   └── notifications.py      # user inbox
     │
     ├── models/                   # SQLAlchemy ORM models
@@ -550,6 +574,15 @@ REVIEWS
 GET    /api/reviews
 POST   /api/reviews                        HR only
 GET    /api/reviews/{id}/status
+
+CUSTOM MATRICES
+GET    /api/matrices                       Manager / Tech Lead — own matrices
+POST   /api/matrices                       Manager / Tech Lead — create matrix
+GET    /api/matrices/{id}
+PUT    /api/matrices/{id}
+DELETE /api/matrices/{id}
+POST   /api/matrices/{id}/assign           Assign matrix to employee(s)
+GET    /api/matrices/{id}/results          View completion results
 
 NOTIFICATIONS
 GET    /api/notifications

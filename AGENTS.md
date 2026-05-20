@@ -59,8 +59,8 @@ celery -A app.celery worker --loglevel=info                      # local Celery 
 | Role | Can Edit | Export Scope |
 | ------ | ---------- | -------------- |
 | `EMPLOYEE` | Own profile only | Own profile |
-| `LINE_MANAGER` | Subordinates (notifies employee on every change) | Team only |
-| `TECH_LEAD` | Team members (notifies employee on every change) | Team only |
+| `LINE_MANAGER` | Subordinates (notifies employee); create custom matrices; trigger ad-hoc review cycles | Team only |
+| `TECH_LEAD` | Team members (notifies employee); create custom matrices; trigger ad-hoc review cycles | Team only |
 | `HR_COORDINATOR` | All profiles, taxonomy, bulk import + export | Full workforce |
 | `GENERAL_MANAGEMENT` | Read-only dashboards | None |
 
