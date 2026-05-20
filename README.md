@@ -77,6 +77,10 @@ A **cloud-hosted, fully Dockerized workforce platform** for 1,400 employees that
 
 ## 3. Permission Model
 
+### 3.1 Built-in Roles
+
+Five system roles are pre-defined and cannot be deleted:
+
 ```text
 ┌──────────────────────┬───────────────┬──────────────────────────────────┐
 │ ROLE                 │ VIEW          │ EDIT                             │
@@ -98,9 +102,69 @@ A **cloud-hosted, fully Dockerized workforce platform** for 1,400 employees that
 │                      │               │ ✦ Trigger ad-hoc review cycles   │
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
 │ HR Coordinator       │ All + analytics│ Taxonomy, bulk import, reviews  │
+│                      │               │ ✦ Create / edit / delete custom  │
+│                      │               │   roles (see §3.2)               │
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
 │ General Management   │ Dashboards    │ No editing                       │
 └──────────────────────┴───────────────┴──────────────────────────────────┘
+```
+
+### 3.2 Custom Roles
+
+HR Coordinators can define additional roles beyond the five built-in ones to accommodate org-specific needs (e.g., "Project Manager", "Scrum Master", "Department Head").
+
+**Configurable permissions per custom role:**
+
+| Permission | Description |
+| ---------- | ----------- |
+| `view_scope` | `OWN` · `TEAM` · `DEPARTMENT` · `ALL` |
+| `edit_scope` | `NONE` · `OWN` · `TEAM` · `DEPARTMENT` |
+| `can_edit_subordinates` | Boolean — whether edit triggers employee notification |
+| `can_create_matrices` | Boolean — create custom skill matrices |
+| `can_trigger_review_cycles` | Boolean — start ad-hoc review cycles |
+| `can_export` | `NONE` · `OWN` · `TEAM` · `DEPARTMENT` · `ALL` |
+| `can_manage_taxonomy` | Boolean — propose/approve skills (HR-level) |
+
+**Rules:**
+
+- Custom roles are stored in the `custom_roles` DB table with a `permissions JSONB` column.
+- A custom role's permissions cannot exceed those of `HR_COORDINATOR` (server-side enforcement).
+- Employees can be assigned a custom role in addition to (not instead of) their built-in role. The effective permission is the union of both.
+- Custom roles are visible in the role assignment UI only to `HR_COORDINATOR`.
+- Built-in roles (`EMPLOYEE`, `LINE_MANAGER`, `TECH_LEAD`, `HR_COORDINATOR`, `GENERAL_MANAGEMENT`) are stored as an enum in code and cannot be modified or deleted.
+
+**DB schema:**
+
+```sql
+CREATE TABLE custom_roles (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name        VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    permissions JSONB NOT NULL DEFAULT '{}',
+    created_by  UUID REFERENCES employees(id),
+    created_at  TIMESTAMPTZ DEFAULT now(),
+    is_active   BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE employee_custom_roles (
+    employee_id     UUID REFERENCES employees(id) ON DELETE CASCADE,
+    custom_role_id  UUID REFERENCES custom_roles(id) ON DELETE CASCADE,
+    assigned_by     UUID REFERENCES employees(id),
+    assigned_at     TIMESTAMPTZ DEFAULT now(),
+    PRIMARY KEY (employee_id, custom_role_id)
+);
+```
+
+**API endpoints** (owner: `nemanjaninkovic-1`):
+
+```text
+GET    /api/roles/custom                    # list all custom roles
+POST   /api/roles/custom                    # create custom role (HR only)
+GET    /api/roles/custom/{role_id}          # get role details
+PUT    /api/roles/custom/{role_id}          # update role (HR only)
+DELETE /api/roles/custom/{role_id}          # soft-delete role (HR only)
+POST   /api/roles/custom/{role_id}/assign   # assign role to employee (HR only)
+DELETE /api/roles/custom/{role_id}/assign/{employee_id}  # unassign
 ```
 
 ### Manager Edit — Notification Flow

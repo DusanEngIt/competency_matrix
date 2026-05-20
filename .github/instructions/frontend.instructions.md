@@ -65,8 +65,10 @@ Use `<Badge>` component for proficiency levels — do not render raw numbers wit
 ## Auth
 
 - Session managed via NextAuth.js (`src/lib/auth.ts`)
-- Role available on session object: `EMPLOYEE | LINE_MANAGER | HR_COORDINATOR | GENERAL_MANAGEMENT`
+- Built-in role available on session object: `EMPLOYEE | LINE_MANAGER | TECH_LEAD | HR_COORDINATOR | GENERAL_MANAGEMENT`
+- Session also exposes `customPermissions` object (from `/api/auth/me`) for any custom role permissions assigned to the user
 - Gate UI elements by role — do not rely solely on backend for access control visibility
+- Custom role management UI (create/edit/delete roles, assign to employees) is visible **only to `HR_COORDINATOR`**
 
 ## Import Wizard (Excel)
 

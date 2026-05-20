@@ -43,12 +43,23 @@ app/
 Check role inside route handler via decoded JWT — do not trust client-supplied role claims:
 
 ```python
-# Roles: EMPLOYEE | LINE_MANAGER | TECH_LEAD | HR_COORDINATOR | GENERAL_MANAGEMENT
+# Built-in roles: EMPLOYEE | LINE_MANAGER | TECH_LEAD | HR_COORDINATOR | GENERAL_MANAGEMENT
 if current_user.role not in ("HR_COORDINATOR",):
     raise HTTPException(status_code=403, detail="Forbidden")
 ```
 
-Manager editing a subordinate's skill **must** create a `skill_audit_log` entry and queue a notification task — never skip this.
+**Custom roles:** In addition to the built-in role, employees may have custom roles assigned via `employee_custom_roles`. To check a custom permission:
+
+```python
+# Effective permissions = built-in role permissions UNION custom role permissions
+has_perm = await check_effective_permission(db, current_user.id, "can_export", scope="DEPARTMENT")
+if not has_perm:
+    raise HTTPException(status_code=403, detail="Forbidden")
+```
+
+- `check_effective_permission` lives in `app/auth/permissions.py`.
+- Custom role permissions are stored in `custom_roles.permissions JSONB`; never exceed `HR_COORDINATOR` level.
+- Only `HR_COORDINATOR` can create/edit/delete custom roles (`POST/PUT/DELETE /api/roles/custom`).
 
 ## Audit Log Pattern (every manager/HR edit)
 

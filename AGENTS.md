@@ -61,8 +61,11 @@ celery -A app.celery worker --loglevel=info                      # local Celery 
 | `EMPLOYEE` | Own profile only | Own profile |
 | `LINE_MANAGER` | Subordinates (notifies employee); create custom matrices; trigger ad-hoc review cycles | Team only |
 | `TECH_LEAD` | Team members (notifies employee); create custom matrices; trigger ad-hoc review cycles | Team only |
-| `HR_COORDINATOR` | All profiles, taxonomy, bulk import + export | Full workforce |
+| `HR_COORDINATOR` | All profiles, taxonomy, bulk import + export; **create/edit/delete custom roles** | Full workforce |
 | `GENERAL_MANAGEMENT` | Read-only dashboards | None |
+| `CUSTOM_ROLE` | Configurable per role (view/edit scope, export, matrices, review cycles) | Configurable |
+
+Custom roles are defined by HR Coordinator via `POST /api/roles/custom`. Permissions stored as JSONB. Effective permission = union of built-in role + any assigned custom roles. See README §3.2.
 
 ## File-Specific Instructions
 
