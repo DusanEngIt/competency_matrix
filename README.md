@@ -901,12 +901,20 @@ workforce-platform/
 | 2 | Company brand colors (hex)? | ilija-radonjic | 🔴 High |
 | 3 | SSO provider — Azure AD, Okta, or LDAP? | nemanjaninkovic-1 | 🔴 High |
 | 4 | Sample anonymized Excel export from HR? | nemanjaninkovic-1 | 🔴 High |
-| 5 | Cloud provider preference / existing VM? | nemanjaninkovic-1 | 🟡 Medium |
-| 6 | Proficiency self-reported only, or manager must validate? | nemanjaninkovic-1 | 🟡 Medium |
-| 7 | UI language — Serbian, English, or both? | ilija-radonjic | 🟡 Medium |
-| 8 | Dispute flow when employee disagrees with manager edit? | nemanjaninkovic-1 | 🟡 Medium |
-| 9 | SMTP server available for email notifications? | nemanjaninkovic-1 | 🟡 Medium |
-| 10 | How is proficiency stored in current Excel? (numbers or text?) | nemanjaninkovic-1 | 🟡 Medium |
+| 5 | Should search rank by recency of last review, or only by proficiency + relevance? | engveselin | 🔴 High |
+| 6 | Should search results include employees with 0 matching skills, ranked last? | engveselin | 🔴 High |
+| 7 | Which modules are in scope for Pillar 01 MVP vs. deferred to later pillars? | DusanEngIt | 🔴 High |
+| 8 | Cloud provider preference / existing VM? | nemanjaninkovic-1 | 🟡 Medium |
+| 9 | Proficiency self-reported only, or manager must validate? | nemanjaninkovic-1 | 🟡 Medium |
+| 10 | UI language — Serbian, English, or both? | ilija-radonjic | 🟡 Medium |
+| 11 | Dispute flow when employee disagrees with manager edit? | nemanjaninkovic-1 | 🟡 Medium |
+| 12 | SMTP server available for email notifications? | nemanjaninkovic-1 | 🟡 Medium |
+| 13 | How is proficiency stored in current Excel? (numbers or text?) | nemanjaninkovic-1 | 🟡 Medium |
+| 14 | Should skill search support filtering by department or seniority level? | engveselin | 🟡 Medium |
+| 15 | Should employee profile photos be pulled from Workday, Azure AD, or uploaded manually? | ilija-radonjic | 🟡 Medium |
+| 16 | Are there any accessibility or compliance requirements beyond WCAG 2.1 AA? | ilija-radonjic | 🟡 Medium |
+| 17 | What is the SLA for the daily Workday sync — can it fail silently or must it alert? | DusanEngIt | 🟡 Medium |
+| 18 | Is there a data retention policy for audit logs and terminated employee records? | DusanEngIt | 🟡 Medium |
 
 ---
 
