@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+*.env
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node.js / Next.js
+node_modules/
+.next/
+out/
+.npm
+*.tsbuildinfo
+next-env.d.ts
+
+# Docker
+*.log
+docker-compose.override.yml.bak
+
+# Database
+*.sql.gz
+/backups/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Certificates / secrets
+certs/
+*.pem
+*.key
+*.crt
+
+# Alembic
+alembic/versions/__pycache__/
+
+# AI model weights (large files, cached via Docker volume)
+apps/ai-service/models/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
