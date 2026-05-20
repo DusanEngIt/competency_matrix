@@ -7,7 +7,7 @@ applyTo: "apps/frontend/**"
 
 ## App Router Layout
 
-```
+```text
 src/
 ├── app/                          # Next.js App Router — file-based routing
 │   ├── layout.tsx
@@ -16,10 +16,12 @@ src/
 │   ├── profile/[id]/page.tsx
 │   ├── profile/edit/page.tsx
 │   ├── import/page.tsx
+│   ├── export/page.tsx
 │   └── admin/{taxonomy,reviews}/page.tsx
 ├── components/
 │   ├── ui/                       # Button, Badge, SkillCard, ProfileCard, SearchBar
 │   ├── import/                   # FileUpload, ColumnMapper, ValidationTable, ImportProgress
+│   ├── export/                   # ExportForm, ExportProgress, ExportDownload
 │   └── layout/                   # Navbar, Sidebar
 ├── styles/globals.css            # CSS variables — brand colors defined here
 └── lib/
@@ -69,3 +71,10 @@ Use `<Badge>` component for proficiency levels — do not render raw numbers wit
 ## Import Wizard (Excel)
 
 Status polling: `GET /api/import/{job_id}/status` — use `ImportProgress` component which handles polling internally. Do not implement custom polling logic.
+
+## Export (Excel)
+
+- Trigger: `POST /api/export` — scope is determined server-side from JWT role; do not pass role in the request body
+- Status polling: `GET /api/export/{job_id}/status` — use `ExportProgress` component
+- Download: `GET /api/export/{job_id}/download` — link shown only when status is `COMPLETED`
+- Show the Export button only to roles that have export scope (`EMPLOYEE`, `LINE_MANAGER`, `HR_COORDINATOR`); hide for `GENERAL_MANAGEMENT`

@@ -124,3 +124,4 @@ def process_<resource>(record_id: str):
 - [ ] Schema has `model_config = {"from_attributes": True}` for ORM responses
 - [ ] Router registered in `main.py`
 - [ ] Alembic migration created if new model added
+- [ ] For export endpoints: scope filtered by role server-side (HR → all, Manager → team, Employee → self); never stream large exports synchronously

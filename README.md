@@ -1,4 +1,5 @@
 # Workforce Platform — Full Requirements Specification
+
 ## Pillar 01: Skill Matrix & Competency Management
 
 > **ENG Software Lab · Workforce Platform Workshop**
@@ -9,9 +10,9 @@
 ## 1. Team & Responsibilities
 
 | Engineer | Role | Owns |
-|----------|------|------|
-| **nemanjaninkovic-1** | 🏗️ Tech Lead / Architect | Docker compose, Workday sync, infra, code review |
-| **engineer-2** | ⚙️ Backend Engineer | FastAPI routes, skill CRUD, Excel import, notifications, auth |
+| ---------- | ------ | ------ |
+| **nemanjaninkovic-1** | ⚙️ Backend Engineer | Auth, Workday sync, DB schema/migrations, Docker setup, code review |
+| **engineer-2** | ⚙️ Backend Engineer | FastAPI routes, skill CRUD, Excel import, notifications |
 | **engineer-3** | 🤖 AI / Search Engineer | Embedding model, pgvector search, semantic pipeline, caching |
 | **engineer-4** | 🎨 Frontend Engineer | Next.js UI, company branding, search UI, profile pages, import wizard |
 
@@ -21,19 +22,19 @@
 
 ### 2.1 What We Are Building
 
-A **self-hosted, fully Dockerized workforce platform** for 1,400 employees that:
+A **cloud-hosted, fully Dockerized workforce platform** for 1,400 employees that:
 
 - Centralizes every employee's hard and soft skills in one place
 - Allows each employee to manage their own profile
 - Enables fast AI-powered semantic search across all profiles
-- Runs entirely locally — no SaaS, no external AI API costs
+- Runs on cloud infrastructure — no SaaS, no external AI API costs
 - Integrates with Workday as the HR system of record
 - Supports bulk data import from existing Excel files
 
 ### 2.2 The Six Pillars (Today's Scope: Pillar 01)
 
 | # | Pillar | Status |
-|---|--------|--------|
+| --- | -------- | -------- |
 | **01** | **Skill Matrix & Competency Management** | ✅ Today's scope |
 | 02 | Workforce Management & Resource Allocation | 🔜 Future |
 | 03 | Demand Management & Staffing Tracking | 🔜 Future |
@@ -53,7 +54,7 @@ A **self-hosted, fully Dockerized workforce platform** for 1,400 employees that:
 
 ## 3. Permission Model
 
-```
+```text
 ┌──────────────────────┬───────────────┬──────────────────────────────────┐
 │ ROLE                 │ VIEW          │ EDIT                             │
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
@@ -70,7 +71,7 @@ A **self-hosted, fully Dockerized workforce platform** for 1,400 employees that:
 
 ### Manager Edit — Notification Flow
 
-```
+```text
 Manager saves edit
       │
       ▼
@@ -90,7 +91,7 @@ Notification triggered
 
 ### 4.1 Hard Skills vs. Soft Skills
 
-```
+```text
 HARD SKILLS
 ├── Programming Languages     Java, Python, TypeScript, Go, C#...
 ├── Frameworks & Libraries    React, Angular, Spring Boot, FastAPI...
@@ -106,13 +107,20 @@ SOFT SKILLS
 ├── Problem Solving & Critical Thinking
 ├── Adaptability & Learning Agility
 ├── Client Facing / Stakeholder Management
-└── Mentoring & Knowledge Transfer
+├── Mentoring & Knowledge Transfer
+├── Estimation                      — realistic estimation of time, effort, and complexity
+├── Requirements Understanding      — clear grasp of goals, context, and expectations
+├── Work Breakdown (WBS)            — decomposing work into clear, manageable, logical steps
+├── Risk Awareness                  — timely identification and addressing of risks
+├── Ownership & Accountability      — taking responsibility from start to finish
+├── Stakeholder Communication       — clear, timely, and audience-appropriate communication
+└── Delivery Reliability            — consistent delivery on agreed timelines and quality
 ```
 
 ### 4.2 Proficiency Scale
 
 | Level | Label | Description |
-|-------|-------|-------------|
+| ------- | ------- | ------------- |
 | 1 | Beginner | Theoretical knowledge only |
 | 2 | Elementary | Needs guidance; limited hands-on |
 | 3 | Intermediate | Works independently on standard tasks |
@@ -121,7 +129,7 @@ SOFT SKILLS
 
 ### 4.3 Adding New Skills
 
-```
+```text
 Employee types unknown skill
       ├── AI suggests closest taxonomy match (local embeddings)
       │         ├── Match accepted → uses existing entry
@@ -138,7 +146,7 @@ Excel Import  → new skill names auto-proposed for HR review
 
 ### 5.1 Import Flow
 
-```
+```text
 STEP 1 — UPLOAD
   HR or Employee uploads .xlsx / .xls / .csv (max 50MB)
 
@@ -148,16 +156,16 @@ STEP 2 — COLUMN MAPPING WIZARD
 
   Excel Column        →   Platform Field
   ──────────────────────────────────────────────
-  "Ime"               →   employee.first_name
-  "Prezime"           →   employee.last_name
+  "First Name"        →   employee.first_name
+  "Last Name"         →   employee.last_name
   "Email"             →   employee.email  ← unique key
-  "Odeljenje"         →   employee.department
-  "Pozicija"          →   employee.title
-  "Tehnologija"       →   skill.name
-  "Kategorija"        →   skill.category (HARD/SOFT)
-  "Nivo (1-5)"        →   proficiency_level
-  "Godine iskustva"   →   years_of_experience
-  "Napomena"          →   notes
+  "Department"        →   employee.department
+  "Position"          →   employee.title
+  "Technology"        →   skill.name
+  "Category"          →   skill.category (HARD/SOFT)
+  "Level (1-5)"       →   proficiency_level
+  "Years of Exp"      →   years_of_experience
+  "Notes"             →   notes
 
   Mapping template saved for future reuse
 
@@ -188,7 +196,7 @@ STEP 5 — BACKGROUND PROCESSING (Celery)
 
 ### 6.1 Employee Profile
 
-```
+```text
 ├── Basic Info (synced from Workday)
 │   ├── Full name, email, photo, department, title, seniority, manager
 │
@@ -213,9 +221,32 @@ STEP 5 — BACKGROUND PROCESSING (Celery)
 - Free-text notes per skill
 - Changes saved instantly (optimistic UI)
 
-### 6.3 Review Cycles
+### 6.3 Excel Export
 
+```text
+SCOPE
+  HR Coordinator  → full workforce export (all employees, all skills)
+  Line Manager    → team export (subordinates only)
+  Employee        → own profile export
+
+FORMAT: .xlsx   (generated server-side via openpyxl)
+
+COLUMNS EXPORTED
+  First Name · Last Name · Email · Department · Position · Seniority
+  Skill Name · Category (HARD/SOFT) · Proficiency (1–5) · Years of Exp · Notes
+  Last Reviewed At · Last Reviewed By
+
+FILTERS (optional)
+  Department, Category, Min Proficiency Level
+
+EXPORT FLOW
+  User clicks "Export" → POST /api/export → Celery task → .xlsx generated
+  Download link returned when ready  (or streamed directly for small sets)
 ```
+
+### 6.4 Review Cycles
+
+```text
 Semi-annual  → automated reminders at T-14 days, manager dashboard
 Annual       → employee updates + manager sign-off required
 Project-based → triggered manually by HR or Manager
@@ -228,7 +259,7 @@ Project-based → triggered manually by HR or Manager
 ### 7.1 Why pgvector Instead of Qdrant
 
 | | Qdrant (separate container) | pgvector (PostgreSQL extension) |
-|--|--|--|
+| -- | -- | -- |
 | Extra container | ✅ Yes — extra RAM, extra ops | ❌ No — reuses existing DB |
 | Speed at 1,400 profiles | Fast | **Equally fast** (HNSW index) |
 | Cost | Free but heavier | **Free + lighter** |
@@ -239,8 +270,8 @@ Project-based → triggered manually by HR or Manager
 
 ### 7.2 Semantic Search Pipeline
 
-```
-User query: "cloud arhitektura, vođenje tima"
+```text
+User query: "cloud architecture, team leadership"
       │
       ▼
 ┌─────────────────────────────────────────────────────┐
@@ -298,7 +329,7 @@ CREATE INDEX ON employees
 
 ### 7.4 Redis Caching
 
-```
+```text
 KEY                                          TTL
 ────────────────────────────────────────────────────────
 search:{sha256(query+filters)}               5 min
@@ -319,9 +350,9 @@ INVALIDATION
 
 ### 8.1 Docker Services
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────────┐
-│                  DOCKER HOST (Cloud VM / On-Prem)                │
+│                       DOCKER HOST (Cloud VM)                     │
 │                                                                  │
 │  nginx:443       reverse proxy + SSL termination                 │
 │  frontend:3000   Next.js                                         │
@@ -416,7 +447,7 @@ volumes:
 
 ### 9.1 Project Structure
 
-```
+```text
 apps/backend/
 ├── Dockerfile
 ├── requirements.txt
@@ -456,7 +487,7 @@ apps/backend/
 
 ### 9.2 API Endpoints
 
-```
+```text
 AUTH
 POST   /api/auth/login
 POST   /api/auth/sso
@@ -496,11 +527,16 @@ GET    /api/reviews/{id}/status
 NOTIFICATIONS
 GET    /api/notifications
 PATCH  /api/notifications/{id}/read
+
+EXPORT
+POST   /api/export                        HR / Manager / Employee (scoped)
+GET    /api/export/{job_id}/status
+GET    /api/export/{job_id}/download
 ```
 
 ### 9.3 Libraries
 
-```
+```text
 fastapi · uvicorn[standard]
 sqlalchemy[asyncio]==2.0.* · asyncpg · alembic
 pydantic-settings
@@ -509,7 +545,7 @@ passlib[bcrypt]
 redis[asyncio]
 celery[redis]
 httpx                           # calls ai-service
-openpyxl · pandas               # Excel import
+openpyxl · pandas               # Excel import + export
 python-multipart                # file upload
 pgvector                        # SQLAlchemy vector type
 ```
@@ -520,7 +556,7 @@ pgvector                        # SQLAlchemy vector type
 
 ### 10.1 Project Structure
 
-```
+```text
 apps/ai-service/
 ├── Dockerfile
 ├── requirements.txt
@@ -533,7 +569,7 @@ apps/ai-service/
 ### 10.2 Model Choice
 
 | Model | RAM | Languages | CPU Speed | License |
-|-------|-----|-----------|-----------|---------|
+| ------- | ----- | ----------- | ----------- | --------- |
 | **paraphrase-multilingual-MiniLM-L12-v2** ✅ | 420MB | 50+ (incl. Serbian) | ~10ms | Apache 2.0 |
 | all-MiniLM-L6-v2 | 80MB | English only | ~5ms | Apache 2.0 |
 | multilingual-e5-large | 1.1GB | 100+ | ~40ms | MIT |
@@ -542,7 +578,7 @@ apps/ai-service/
 
 ### 10.3 Libraries
 
-```
+```text
 fastapi · uvicorn
 sentence-transformers
 asyncpg · sqlalchemy[asyncio]
@@ -556,7 +592,7 @@ rank-bm25                       # hybrid keyword re-ranking
 
 ### 11.1 Project Structure
 
-```
+```text
 apps/frontend/
 ├── Dockerfile
 ├── package.json
@@ -568,6 +604,7 @@ apps/frontend/
     │   ├── profile/[id]/page.tsx     # view profile
     │   ├── profile/edit/page.tsx     # self-service editing
     │   ├── import/page.tsx           # Excel import wizard
+    │   ├── export/page.tsx           # Excel export
     │   └── admin/
     │       ├── taxonomy/page.tsx
     │       └── reviews/page.tsx
@@ -727,7 +764,7 @@ CREATE TABLE import_jobs (
 
 ## 13. Workday Integration
 
-```
+```text
 DIRECTION: Workday → Platform only (one-way, Pillar 01)
 SCHEDULE:  Daily cron at 02:00 (Celery beat inside backend container)
 AUTH:      Workday OAuth2 / RAAS REST API
@@ -746,7 +783,7 @@ SYNC EVENTS
 ### 14.1 VM Sizing
 
 | Provider | VM | vCPU | RAM | Cost/mo |
-|----------|-----|------|-----|---------|
+| ---------- | ----- | ------ | ----- | --------- |
 | Hetzner (EU) | CX31 | 2 | 8GB | ~€12 |
 | AWS | t3.large | 2 | 8GB | ~$55 |
 | **Azure B4ms** *(recommended)* | | **4** | **16GB** | **~$80** |
@@ -795,7 +832,7 @@ find /backups -name "*.sql.gz" -mtime +30 -delete
 ## 15. Non-Functional Requirements
 
 | Requirement | Target |
-|-------------|--------|
+| ------------- | -------- |
 | Search (cold) | < 100ms |
 | Search (cached) | < 10ms |
 | AI embedding | < 10ms on CPU |
@@ -813,7 +850,7 @@ find /backups -name "*.sql.gz" -mtime +30 -delete
 
 ## 16. Repository Structure
 
-```
+```text
 workforce-platform/
 ├── docker-compose.yml
 ├── docker-compose.override.yml      # local dev hot-reload
@@ -824,7 +861,7 @@ workforce-platform/
 │   └── ai-service/                  # Embeddings + search — engineer-3
 ├── nginx/nginx.conf
 ├── db/migrations/
-└── docs/WORKFORCE_PLATFORM_FULL_SPEC.md
+└── README.md                        # this file
 ```
 
 ---
@@ -832,7 +869,7 @@ workforce-platform/
 ## 17. Open Questions
 
 | # | Question | Owner | Priority |
-|---|----------|-------|----------|
+| --- | ---------- | ------- | ---------- |
 | 1 | Workday API type (REST/RAAS/SOAP) + credentials? | nemanjaninkovic-1 | 🔴 High |
 | 2 | Company brand colors (hex)? | engineer-4 | 🔴 High |
 | 3 | SSO provider — Azure AD, Okta, or LDAP? | nemanjaninkovic-1 | 🔴 High |
@@ -849,10 +886,11 @@ workforce-platform/
 ## 18. Milestones
 
 | Week | Milestone | Owner(s) |
-|------|-----------|----------|
-| 1 | Docker compose running, DB schema + pgvector setup, migrations | nemanjaninkovic-1 + engineer-2 |
+| ------ | ----------- | ---------- |
+| 1 | Docker compose running, DB schema + pgvector setup, migrations | nemanjaninkovic-1 |
 | 1 | AI service running, embedding model loaded, /embed endpoint live | engineer-3 |
-| 2 | FastAPI auth + employee/skill CRUD endpoints | engineer-2 |
+| 2 | FastAPI auth endpoints (login, SSO, refresh) | nemanjaninkovic-1 |
+| 2 | Employee + skill CRUD endpoints | engineer-2 |
 | 2 | Next.js scaffolded, branding applied, routing set up | engineer-4 |
 | 3 | Excel import wizard end-to-end | engineer-2 + engineer-4 |
 | 3 | Semantic search endpoint + Redis caching | engineer-3 + engineer-2 |
@@ -860,7 +898,7 @@ workforce-platform/
 | 4 | Workday sync service (daily cron) | nemanjaninkovic-1 |
 | 5 | Notification system (in-app + email) | engineer-2 |
 | 5 | Review cycle management | engineer-2 + engineer-4 |
-| 6 | VM deploy, SSL, smoke testing, UAT with HR | Full team |
+| 6 | Cloud deploy, SSL, smoke testing, UAT with HR | Full team |
 
 ---
 

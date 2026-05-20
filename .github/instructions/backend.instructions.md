@@ -11,15 +11,22 @@ applyTo: "apps/backend/**"
 - Engine/session in `app/database.py`; inject via `Depends(get_db)` in routes
 - Use `select()`, `insert()`, `update()` from `sqlalchemy` — not ORM `.query()`
 
+## Team Split
+
+| Engineer            | Owns                                                                          |
+| ------------------- | ----------------------------------------------------------------------------- |
+| `nemanjaninkovic-1` | Auth endpoints, Workday sync, DB schema/migrations, Docker setup, code review |
+| `engineer-2`        | Employee/skill CRUD routes, Excel import, Excel export, notifications         |
+
 ## Project Structure
 
-```
+```text
 app/
-├── routers/          # One file per resource (auth, employees, skills, search, import, reviews, notifications)
+├── routers/          # auth, employees, skills, search, import, export, reviews, notifications
 ├── models/           # SQLAlchemy ORM models
 ├── schemas/          # Pydantic v2 request/response schemas
 ├── services/         # Business logic (workday, excel, notifications, ai_client)
-└── tasks/            # Celery tasks (import_task, workday_sync, embed_profile, review_reminders)
+└── tasks/            # import_task, export_task, workday_sync, embed_profile, review_reminders
 ```
 
 ## RBAC Enforcement
@@ -50,6 +57,13 @@ await redis.delete_pattern("search:*")    # bust all search caches
 # After taxonomy change:
 await redis.delete_pattern("taxonomy:*")
 ```
+
+## Excel Export
+
+- Endpoint: `POST /api/export` → enqueues `export_task`; `GET /api/export/{job_id}/status`; `GET /api/export/{job_id}/download`
+- Scope enforced by role: `HR_COORDINATOR` → full workforce; `LINE_MANAGER` → subordinates only; `EMPLOYEE` → own profile only
+- Generated server-side with `openpyxl`; never stream large exports synchronously — always use Celery
+- Column mapping uses English field names: `First Name`, `Last Name`, `Department`, `Position`, `Technology`, `Category`, `Level (1-5)`, `Years of Exp`, `Notes`
 
 ## Settings
 
