@@ -124,11 +124,11 @@ SOFT SKILLS
 
 | Level | Label | Description |
 | ------- | ------- | ------------- |
-| 1 | Beginner | Theoretical knowledge only |
-| 2 | Elementary | Needs guidance; limited hands-on |
-| 3 | Intermediate | Works independently on standard tasks |
-| 4 | Advanced | Leads implementation, solves complex problems |
-| 5 | Expert | Go-to person; defines standards; mentors others |
+| 1 | Beginner | Basic understanding; frequent support needed; works on clearly defined, simple tasks |
+| 2 | Intermediate | Independent on simpler tasks; needs support on complex or less defined tasks |
+| 3 | Experienced | Stable and reliable in daily work; independently manages medium-complexity tasks; consciously considers risks and dependencies |
+| 4 | Advanced | Very confident and proactive; works on complex, multi-layered tasks; able to provide realistic estimation, work breakdown, and planning even under uncertainty |
+| 5 | Master | Expert level; works on highly complex or strategic topics; mentors others and actively improves delivery processes |
 
 ### 4.3 Adding New Skills
 

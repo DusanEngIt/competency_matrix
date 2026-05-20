@@ -55,10 +55,10 @@ Proficiency is always an integer 1–5. Display label alongside number:
 | Value | Label        |
 | ----- | ------------ |
 | 1     | Beginner     |
-| 2     | Elementary   |
-| 3     | Intermediate |
+| 2     | Intermediate |
+| 3     | Experienced  |
 | 4     | Advanced     |
-| 5     | Expert       |
+| 5     | Master       |
 
 Use `<Badge>` component for proficiency levels — do not render raw numbers without labels.
 

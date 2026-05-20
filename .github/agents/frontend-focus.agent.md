@@ -22,9 +22,9 @@ You are a Next.js specialist for the Workforce Platform frontend (`apps/frontend
 
 **Proficiency labels** (always show alongside the number):
 
-| 1        | 2          | 3            | 4        | 5      |
-| -------- | ---------- | ------------ | -------- | ------ |
-| Beginner | Elementary | Intermediate | Advanced | Expert |
+| 1        | 2            | 3           | 4        | 5      |
+| -------- | ------------ | ----------- | -------- | ------ |
+| Beginner | Intermediate | Experienced | Advanced | Master |
 
 Use `<Badge>` component — never render raw integers.
 
