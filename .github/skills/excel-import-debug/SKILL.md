@@ -61,12 +61,12 @@ docker compose exec backend celery -A app.celery inspect reserved
 
 Look at `error_report` JSONB column from step 1. Common causes:
 
-| Error                      | Cause                                  | Fix                                                             |
-| -------------------------- | -------------------------------------- | --------------------------------------------------------------- |
-| `skill_not_found`          | Skill name too different from taxonomy | Re-check AI embedding service; lower similarity threshold       |
-| `employee_not_found`       | Email mismatch                         | Verify email column mapping; check `employees` table            |
-| `proficiency_out_of_range` | Text level not in map                  | Add mapping: `Junior→2, Mid→3, Senior→4` in `services/excel.py` |
-| `duplicate_row`            | Same employee+skill twice              | Expected — row deduplicated automatically                       |
+| Error                      | Cause                                  | Fix                                                                                                                                         |
+| -------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `skill_not_found`          | Skill name too different from taxonomy | Re-check AI embedding service; lower similarity threshold                                                                                   |
+| `employee_not_found`       | Email mismatch                         | Verify email column mapping; check `employees` table                                                                                        |
+| `proficiency_out_of_range` | Text level not in map                  | Add mapping: `Beginner→1, Intermediate→2, Experienced→3, Advanced→4, Master→5` (legacy: `Junior→2, Mid→3, Senior→4`) in `services/excel.py` |
+| `duplicate_row`            | Same employee+skill twice              | Expected — row deduplicated automatically                                                                                                   |
 
 ### 6. Manually Retry a Failed Job
 

@@ -174,7 +174,8 @@ STEP 2 — COLUMN MAPPING WIZARD
 
 STEP 3 — VALIDATION
   ✅ Required fields present (email, skill, proficiency)
-  ✅ Proficiency is 1–5 (text levels auto-converted: Junior→2, Senior→4)
+  ✅ Proficiency is 1–5 (text levels auto-converted: Beginner→1, Intermediate→2, Experienced→3, Advanced→4, Master→5;
+           legacy maps: Junior→2, Mid→3, Senior→4 also supported)
   ✅ Employee matched by email
   ⚠️  Unknown skill → AI maps to closest taxonomy entry
   ❌  Unresolvable skill → flagged, excluded, HR notified
