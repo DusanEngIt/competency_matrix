@@ -497,6 +497,11 @@ CUSTOM ROLE MANAGEMENT
   ├── Configure permissions (JSONB: view_scope, can_export, can_create_matrices, etc.)
   ├── Assign custom role to one or more employees
   └── Edit / delete custom roles (ceiling = HR_COORDINATOR permissions)
+
+PLATFORM SETTINGS
+  ├── Search minimum match threshold (default 70%, range 50–95%)
+  ├── Search page size (default 10, range 5–50)
+  └── Changes take effect immediately; search cache invalidated automatically
 ```
 
 #### General Management — Application Experience
@@ -644,9 +649,9 @@ User query: "cloud architecture, team leadership" + filters: {department: "Engin
 │     score = 0.60 × vector_score                     │
 │           + 0.25 × PostgreSQL full-text (ts_rank)   │
 │           + 0.15 × recency_score(last_reviewed_at)  │
-│     Discard results with hybrid score < 0.70        │
+│  Discard results below min_score threshold (def 0.70)│
 │                                                     │
-│  6. Paginate — 10 results per page                  │
+│  6. Paginate — page_size results per page (def 10)  │
 │     Return page N via offset / cursor               │
 │                                                     │
 │  7. Cache result in Redis                           │
@@ -675,11 +680,11 @@ flowchart TD
 
     F --> G[Hybrid re-ranking\nscore = 0.60 × cosine\n      + 0.25 × ts_rank\n      + 0.15 × recency_score]
 
-    G --> H{score ≥ 0.70?}
+    G --> H{score ≥ min_score?}
     H -- No --> I[Discard result]
     H -- Yes --> J[Keep result]
 
-    J --> K[Paginate\n10 results per page]
+    J --> K[Paginate\npage_size per page]
     K --> L[Cache in Redis\nTTL 5 min]
     L --> M([Return ranked list\nwith stale-profile badge\nif last_reviewed_at > 12 months])
 ```
@@ -1281,7 +1286,7 @@ Quick-reference summary:
 | 3 | ~~SSO provider~~ ✅ **Answered** — Azure Active Directory (MSAL / OIDC) | nemanjaninkovic-1 | 🔴 High | ✅ Answered |
 | 4 | ~~Sample anonymized Excel from HR~~ ✅ **Answered** — Excel on SharePoint, HR is source of truth | nemanjaninkovic-1 | 🔴 High | ✅ Answered |
 | 5 | ~~Search ranking~~ ✅ **Answered** — most recent review ranks highest (time-decay applied) | engveselin | 🔴 High | ✅ Answered |
-| 6 | ~~Search results — 0 matching skills?~~ ✅ **Answered** — min 70% hybrid score; 10 per page | engveselin | 🔴 High | ✅ Answered |
+| 6 | ~~Search results — 0 matching skills?~~ ✅ **Answered** — default 70% min score, 10/page; both HR-configurable | engveselin | 🔴 High | ✅ Answered |
 | 7 | Pillar 01 MVP scope — what is in vs. deferred? | DusanEngIt | 🔴 High | ⚠️ Guess (§18.3) |
 | 8 | ~~Cloud provider~~ ✅ **Answered** — infrastructure provided by ENG | nemanjaninkovic-1 | 🟡 Medium | ✅ Answered |
 | 9 | ~~Proficiency validation~~ ✅ **Answered** — self-reported, awaiting manager confirmation | nemanjaninkovic-1 | 🟡 Medium | ✅ Answered |
@@ -1410,25 +1415,31 @@ hybrid_score = (
 
 **Answer:**
 
-- **Minimum match threshold: 70%** — results with a hybrid score below `0.70` are excluded from the response.
-- **Page size: 10 results per page** — search returns at most 10 employees per page.
+- **Minimum match threshold: configurable, default 70%** — results with a hybrid score below the threshold are excluded. HR Coordinator can adjust this in platform settings (allowed range: 50%–95%).
+- **Page size: configurable, default 10 results per page** — HR Coordinator can change this in platform settings (allowed range: 5–50).
 - Zero-match (low-relevance) employees are not shown.
 
 **Implementation:**
 
 ```python
+# Settings loaded from DB (cached in Redis, TTL 24h):
+threshold = settings.search_min_score   # default 0.70
+page_size  = settings.search_page_size  # default 10
+
 # After hybrid re-ranking:
-results = [r for r in ranked if r.hybrid_score >= 0.70]
+results = [r for r in ranked if r.hybrid_score >= threshold]
 
 # Paginate
-page_size = 10
 page = results[offset : offset + page_size]
 total_pages = ceil(len(results) / page_size)
 ```
 
 - `POST /api/search` accepts `page` (default `1`) and returns `{results, page, total_pages, total_count}`.
-- Page number is included in the Redis cache key: `search:{sha256(query+filters)}:page:{n}`, TTL 5 min.
-- Frontend shows "No results above 70% match" when the filtered list is empty.
+- Page number is included in the Redis cache key: `search:{sha256(query+filters+threshold+page_size)}:page:{n}`, TTL 5 min.
+- Cache is invalidated when HR Coordinator changes either setting.
+- Frontend shows "No results above {threshold}% match" when the filtered list is empty.
+
+**Platform settings stored in:** `platform_settings` table — `search_min_score NUMERIC DEFAULT 0.70` and `search_page_size INTEGER DEFAULT 10`. Editable via `PATCH /api/settings/search` (HR_COORDINATOR only).
 
 ---
 
@@ -1720,8 +1731,8 @@ This spec intentionally mixes **what** the system must do (requirements) with **
 | Topic | Requirement (WHAT) | Implementation guess (HOW) |
 | ----- | ------------------ | -------------------------- |
 | Search returns ranked employees | ✅ Confirmed requirement | Hybrid score = 0.60/0.25/0.15; pgvector HNSW |
-| 70% minimum match | ✅ Confirmed requirement | `hybrid_score >= 0.70` filter in Python |
-| 10 results per page | ✅ Confirmed requirement | Offset pagination in API |
+| Min match threshold (default 70%) | ✅ Confirmed requirement | `hybrid_score >= settings.search_min_score`; HR-configurable via `PATCH /api/settings/search` |
+| Page size (default 10) | ✅ Confirmed requirement | `settings.search_page_size`; HR-configurable via `PATCH /api/settings/search` |
 | Proficiency is self-reported + confirmed | ✅ Confirmed requirement | `validation_status ENUM` on `employee_skills` |
 | Filters by department / title | ✅ Confirmed requirement | SQL `WHERE` pre-filter before HNSW |
 | Source of truth = SharePoint Excel | ✅ Confirmed requirement | Platform-wins conflict policy — **guess** |
