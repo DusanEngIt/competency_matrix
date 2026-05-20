@@ -35,13 +35,18 @@ Use `<Badge>` component — never render raw integers.
 - `HR_COORDINATOR` — full access; all admin pages visible
 - `GENERAL_MANAGEMENT` — dashboards only; no Edit/Export buttons
 
-**CSS variables** (from `src/styles/globals.css`):
+**CSS variables** (from `src/styles/globals.css` — ENG brand, source: eng.it):
 
 ```text
---color-primary, --color-primary-dark, --color-secondary
---color-background, --color-surface
---color-text-primary, --color-text-secondary
---color-success, --color-warning, --color-error
+--color-primary: #c51b88       /* ENG magenta */
+--color-primary-dark: #8c1e74  /* hover/pressed */
+--color-primary-light: #f4d1e8 /* subtle tints */
+--color-dark-navy: #323551     /* headers, sidebar */
+--color-background: #fcfcfc
+--color-surface: #ffffff
+--color-text-primary: #090909
+--color-text-secondary: #9d9d9d
+--color-success: #198754  --color-warning: #ffc107  --color-error: #da1e28
 ```
 
 ## Approach

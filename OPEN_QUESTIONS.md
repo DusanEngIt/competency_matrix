@@ -35,13 +35,21 @@
 
 ---
 
-### 3. Brand Colors
+### 3. Brand Colors ✅ Answered
 
-**Question:** What is the company color palette?
+**Answer:** ENG brand palette extracted from [eng.it](https://www.eng.it/en) production CSS:
 
-**Why it matters:** All UI components use CSS variables. A brand palette document, style guide, or even a list of primary/secondary hex values is sufficient.
+| Token | Hex | Usage |
+| ----- | --- | ----- |
+| `--color-primary` | `#c51b88` | Buttons, links, active states |
+| `--color-primary-dark` | `#8c1e74` | Hover / pressed |
+| `--color-primary-light` | `#f4d1e8` | Badges, subtle tints |
+| `--color-dark-navy` | `#323551` | Headers, sidebar |
+| `--color-background` | `#fcfcfc` | Page background |
+| `--color-text-primary` | `#090909` | Body text |
+| `--color-text-secondary` | `#9d9d9d` | Secondary text, borders |
 
-**Needed:** Company color palette or brand style guide (any format).
+**Still needed:** Logo SVG (light + dark variant), typography/font family.
 
 **Owner:** ilija-radonjic
 

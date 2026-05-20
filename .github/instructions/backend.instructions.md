@@ -66,6 +66,16 @@ if not has_perm:
 - Custom role permissions are stored in `custom_roles.permissions JSONB`; never exceed `HR_COORDINATOR` level.
 - Only `HR_COORDINATOR` can create/edit/delete custom roles (`POST/PUT/DELETE /api/roles/custom`).
 
+## Proficiency Validation Status
+
+`employee_skills.validation_status` has three values: `PENDING` · `CONFIRMED` · `REJECTED`.
+
+- Employee saves a skill → status = `PENDING`, manager notified.
+- Manager confirms → status = `CONFIRMED`, employee notified.
+- Manager edits to a different value → status = `CONFIRMED` immediately, old value replaced, employee notified.
+- `PENDING` skills are included in search results with a visual indicator; `REJECTED` skills are excluded.
+- Only `LINE_MANAGER` / `TECH_LEAD` can confirm skills for their own subordinates / team members.
+
 ## Audit Log Pattern (every manager/HR edit)
 
 ```python

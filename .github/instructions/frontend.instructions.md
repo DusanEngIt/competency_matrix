@@ -41,11 +41,20 @@ src/
 - **Never** hardcode hex values in components — always reference `var(--color-*)`
 
 ```css
-/* Available variables */
---color-primary, --color-primary-dark, --color-secondary
---color-background, --color-surface
---color-text-primary, --color-text-secondary
---color-success, --color-warning, --color-error
+/* ENG Brand — extracted from eng.it production CSS */
+--color-primary: #c51b88; /* ENG magenta — buttons, links, active */
+--color-primary-dark: #8c1e74; /* hover / pressed */
+--color-primary-light: #f4d1e8; /* badges, subtle tints */
+--color-dark-navy: #323551; /* headers, sidebar */
+--color-near-black: #161721; /* dark surfaces */
+--color-background: #fcfcfc; /* page background */
+--color-surface: #ffffff; /* cards, modals */
+--color-text-primary: #090909; /* body text */
+--color-text-secondary: #9d9d9d; /* secondary text, borders */
+--color-success: #198754;
+--color-warning: #ffc107;
+--color-error: #da1e28;
+--color-info: #323551;
 ```
 
 ## Proficiency Display

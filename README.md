@@ -291,6 +291,40 @@ STEP 5 — BACKGROUND PROCESSING (Celery)
   Downloadable error report for failed rows
 ```
 
+### 5.2 Import Flow Diagram
+
+```mermaid
+flowchart TD
+    A([HR downloads Excel\nfrom SharePoint]) --> B[Upload .xlsx via wizard\nPOST /api/import/upload]
+    B --> C[Column Mapping\nMap Excel headers → platform fields]
+    C --> D[Validation]
+
+    D --> D1{Required fields\npresent?}
+    D1 -- No --> E1[❌ Row rejected\nHR notified]
+    D1 -- Yes --> D2{Proficiency\n1–5?}
+    D2 -- No --> D2a[Auto-convert text label\nBeginner→1 … Master→5]
+    D2a --> D3
+    D2 -- Yes --> D3{Employee\nmatched by email?}
+    D3 -- No --> E2[❌ Row rejected]
+    D3 -- Yes --> D4{Skill in\ntaxonomy?}
+    D4 -- Yes --> G[✅ Row valid]
+    D4 -- No --> D5[AI maps to closest\ntaxonomy entry]
+    D5 -- Match found --> G2[⚠️ Auto-mapped row]
+    D5 -- No match --> E3[❌ Flagged — HR notified\nto approve new skill]
+
+    G --> H[Preview & Confirm\nPaginated table with status]
+    G2 --> H
+    H --> I[User confirms\nPOST /api/import/confirm]
+    I --> J[Celery task enqueued\nimport_employees_task]
+
+    J --> K[Process in batches of 100]
+    K --> L[Upsert employees + skills\nin PostgreSQL]
+    L --> M[Trigger embed_profile\nCelery task per employee]
+    M --> N[(pgvector updated\n384-dim embedding)]
+    K --> O[Poll status\nGET /api/import/job_id/status]
+    O --> P([Summary report\n✅ ok / ⚠️ mapped / ❌ failed])
+```
+
 ---
 
 ## 6. Functional Requirements
@@ -500,6 +534,31 @@ User query: "cloud architecture, team leadership" + filters: {department: "Engin
       ▼
 Ranked employee list returned in < 100ms (cold)
                                   < 10ms  (cached)
+```
+
+### 7.2a Search Flow Diagram
+
+```mermaid
+flowchart TD
+    A([User enters query + optional filters\ndepartment / title / role type]) --> B{Redis cache hit?\nsearch:sha256 query+filters+page}
+    B -- Hit --> Z([Return cached result\n< 10ms])
+    B -- Miss --> C[Normalize text\nDetect language SR/EN/IT/AL]
+
+    C --> D[Generate 384-dim embedding\nparaphrase-multilingual-MiniLM-L12-v2\n~10ms on CPU]
+
+    D --> E[Pre-filter candidates\nSQL WHERE department=? AND title ILIKE ?]
+
+    E --> F[pgvector ANN search\nHNSW cosine similarity\nLIMIT 100 candidates · ~5ms]
+
+    F --> G[Hybrid re-ranking\nscore = 0.60 × cosine\n      + 0.25 × ts_rank\n      + 0.15 × recency_score]
+
+    G --> H{score ≥ 0.70?}
+    H -- No --> I[Discard result]
+    H -- Yes --> J[Keep result]
+
+    J --> K[Paginate\n10 results per page]
+    K --> L[Cache in Redis\nTTL 5 min]
+    L --> M([Return ranked list\nwith stale-profile badge\nif last_reviewed_at > 12 months])
 ```
 
 ### 7.3 pgvector Setup
