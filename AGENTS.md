@@ -86,4 +86,4 @@ celery -A app.celery worker --loglevel=info                      # local Celery 
 
 ## Open Questions
 
-See [Section 17 of the spec](./README.md) — SSO provider, Workday API type, brand colors, and SMTP config are unresolved before implementation.
+See [Section 17 of the spec](./README.md) — Workday API type, brand colors, and SMTP config are unresolved before implementation.

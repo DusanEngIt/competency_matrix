@@ -28,6 +28,16 @@ app/
 └── tasks/            # import_task, export_task, workday_sync, embed_profile, review_reminders
 ```
 
+## Authentication — Azure Active Directory (MSAL + OIDC)
+
+- SSO provider is **Azure AD**. Use `msal` (Python) on the backend.
+- Backend validates Azure AD JWTs using the JWKS endpoint:
+  `https://login.microsoftonline.com/{AZURE_TENANT_ID}/discovery/v2.0/keys`
+- Required `settings` fields: `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`
+- Platform role is derived from the Azure AD group claim in the token. Map AD group IDs to roles in `app/auth/role_mapping.py`.
+- Username/password fallback is only active when `DEV_AUTH=true` (local dev only — never in production).
+- Token validation dependency lives in `app/auth/dependencies.py`; inject as `Depends(get_current_user)` in all protected routes.
+
 ## RBAC Enforcement
 
 Check role inside route handler via decoded JWT — do not trust client-supplied role claims:
@@ -72,5 +82,5 @@ await redis.delete_pattern("taxonomy:*")
 ## Libraries in Use
 
 `fastapi` · `uvicorn[standard]` · `sqlalchemy[asyncio]==2.0.*` · `asyncpg` · `alembic`
-`pydantic-settings` · `python-jose[cryptography]` · `passlib[bcrypt]` · `redis[asyncio]`
+`pydantic-settings` · `msal` · `python-jose[cryptography]` · `passlib[bcrypt]` · `redis[asyncio]`
 `celery[redis]` · `httpx` · `openpyxl` · `pandas` · `python-multipart` · `pgvector`

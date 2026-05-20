@@ -25,11 +25,11 @@
 
 ---
 
-### 2. SSO / Authentication Provider
+### 2. SSO / Authentication Provider ✅ Answered
 
-**Question:** Which SSO provider is in use — Azure AD, Okta, LDAP, or none?
+**Answer:** **Azure Active Directory (Azure AD)** — MSAL + OIDC on the backend, `next-auth` with Azure AD provider on the frontend.
 
-**Why it matters:** If SSO is required, the auth service must integrate with the provider before any other feature can be tested by employees. If no SSO, username/password login is used.
+**Still needed:** tenant ID, client ID, client secret, redirect URIs, and AD group → role mapping.
 
 **Owner:** nemanjaninkovic-1
 
@@ -59,11 +59,11 @@
 
 ## 🟡 Medium Priority — Needed Before UAT
 
-### 5. Cloud Infrastructure
+### 5. Cloud Infrastructure ✅ Answered
 
-**Question:** Is there an existing VM or cloud subscription to deploy on, or should the team provision a new one?
+**Answer:** Infrastructure is provided by **ENG** (ENG Software Lab). No need to provision a new subscription.
 
-**Recommendation:** Azure B4ms (4 vCPU, 16GB RAM, ~$80/mo) — fits all containers comfortably.
+**Still needed:** server specs, OS, Docker pre-installed?, domain + SSL, storage for exports, open ports (80, 443, internal 5432/6379).
 
 **Owner:** nemanjaninkovic-1
 

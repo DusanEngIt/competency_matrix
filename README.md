@@ -178,6 +178,8 @@ Excel Import  → new skill names auto-proposed for HR review
 
 ## 5. Excel Import
 
+> **Source of truth:** The master employee skill data is maintained by HR in an **Excel file on SharePoint**. The platform import wizard ingests this file. For Pillar 01, HR downloads the file from SharePoint and uploads it via the wizard. Direct SharePoint integration via Microsoft Graph API is a future consideration.
+
 ### 5.1 Import Flow
 
 ```text
@@ -928,26 +930,302 @@ workforce-platform/
 
 ## 17. Open Questions
 
-| # | Question | Owner | Priority |
-| --- | ---------- | ------- | ---------- |
-| 1 | Workday API type (REST/RAAS/SOAP) + credentials? | nemanjaninkovic-1 | 🔴 High |
-| 2 | Company brand colors — provide company palette or style guide | ilija-radonjic | 🔴 High |
-| 3 | SSO provider — Azure AD, Okta, or LDAP? | nemanjaninkovic-1 | 🔴 High |
-| 4 | Sample anonymized Excel export from HR? | nemanjaninkovic-1 | 🔴 High |
-| 5 | Should search rank by recency of last review, or only by proficiency + relevance? | engveselin | 🔴 High |
-| 6 | Should search results include employees with 0 matching skills, ranked last? | engveselin | 🔴 High |
-| 7 | Which modules are in scope for Pillar 01 MVP vs. deferred to later pillars? | DusanEngIt | 🔴 High |
-| 8 | Cloud provider preference / existing VM? | nemanjaninkovic-1 | 🟡 Medium |
-| 9 | Proficiency self-reported only, or manager must validate? | nemanjaninkovic-1 | 🟡 Medium |
-| 10 | ~~UI language~~ ✅ **Answered** — Serbian, English, Italian, Albanian (i18n) | ilija-radonjic | 🟡 Medium |
-| 11 | Dispute flow when employee disagrees with manager edit? | nemanjaninkovic-1 | 🟡 Medium |
-| 12 | SMTP server available for email notifications? | nemanjaninkovic-1 | 🟡 Medium |
-| 13 | How is proficiency stored in current Excel? (numbers or text?) | nemanjaninkovic-1 | 🟡 Medium |
-| 14 | Should skill search support filtering by department or seniority level? | engveselin | 🟡 Medium |
-| 15 | Should employee profile photos be pulled from Workday, Azure AD, or uploaded manually? | ilija-radonjic | 🟡 Medium |
-| 16 | Are there any accessibility or compliance requirements beyond WCAG 2.1 AA? | ilija-radonjic | 🟡 Medium |
-| 17 | What is the SLA for the daily Workday sync — can it fail silently or must it alert? | DusanEngIt | 🟡 Medium |
-| 18 | Is there a data retention policy for audit logs and terminated employee records? | DusanEngIt | 🟡 Medium |
+Quick-reference summary:
+
+| # | Question | Owner | Priority | Status |
+| --- | ---------- | ------- | ---------- | ------ |
+| 1 | Workday API type + credentials | nemanjaninkovic-1 | 🔴 High | ⬜ Open |
+| 2 | Company brand colors / style guide | ilija-radonjic | 🔴 High | ⬜ Open |
+| 3 | ~~SSO provider~~ ✅ **Answered** — Azure Active Directory (MSAL / OIDC) | nemanjaninkovic-1 | 🔴 High | ✅ Answered |
+| 4 | ~~Sample anonymized Excel from HR~~ ✅ **Answered** — Excel on SharePoint, HR is source of truth | nemanjaninkovic-1 | 🔴 High | ✅ Answered |
+| 5 | Search ranking — include recency of last review? | engveselin | 🔴 High | ⬜ Open |
+| 6 | Search results — include employees with 0 matching skills? | engveselin | 🔴 High | ⬜ Open |
+| 7 | Pillar 01 MVP scope — what is in vs. deferred? | DusanEngIt | 🔴 High | ⬜ Open |
+| 8 | ~~Cloud provider~~ ✅ **Answered** — infrastructure provided by ENG | nemanjaninkovic-1 | 🟡 Medium | ✅ Answered |
+| 9 | Proficiency validation — self-reported or manager-confirmed? | nemanjaninkovic-1 | 🟡 Medium | ⬜ Open |
+| 10 | UI language | ilija-radonjic | 🟡 Medium | ✅ Answered |
+| 11 | Dispute flow for manager-edited proficiency | nemanjaninkovic-1 | 🟡 Medium | ⬜ Open |
+| 12 | SMTP configuration for email notifications | nemanjaninkovic-1 | 🟡 Medium | ⬜ Open |
+| 13 | ~~Proficiency format in current Excel files~~ — N/A | nemanjaninkovic-1 | 🟡 Medium | 🚫 N/A |
+| 14 | ~~Search filters — department and seniority level?~~ — N/A | engveselin | 🟡 Medium | 🚫 N/A |
+| 15 | Employee profile photos — source and storage | ilija-radonjic | 🟡 Medium | ⬜ Open |
+| 16 | Accessibility and compliance requirements | ilija-radonjic | 🟡 Medium | ⬜ Open |
+| 17 | Workday sync failure SLA and alerting | DusanEngIt | 🟡 Medium | ⬜ Open |
+| 18 | Data retention policy for audit logs and terminated employees | DusanEngIt | 🟡 Medium | ⬜ Open |
+
+---
+
+### Detailed Breakdown
+
+---
+
+#### Q1 — Workday API Type + Credentials 🔴 High · nemanjaninkovic-1
+
+**What we need to know:**
+
+- Is the Workday integration REST API, RAAS (Report-as-a-Service), or SOAP Web Services?
+- Authentication method: OAuth 2.0 client credentials, basic auth, or API key?
+- Workday tenant URL, client ID, client secret, and the list of available fields (employee ID, full name, department, manager, job title, hire date, status).
+- Any rate limits or quotas on the API?
+
+**Why it matters:**
+The sync service is being designed around Workday REST + OAuth 2.0. If the actual integration uses RAAS (CSV over HTTP) or SOAP, the `workday_service.py` client and its auth flow require a full rewrite. This decision gates Week 4 of the timeline.
+
+**Current assumption:** REST API with OAuth 2.0, daily sync at 02:00, one-way (Workday → platform).
+
+---
+
+#### Q2 — Company Brand Colors / Style Guide 🔴 High · ilija-radonjic
+
+**What we need to know:**
+
+- Primary, secondary, and accent hex color values.
+- Logo file(s) in SVG format (light and dark variants if available).
+- Typography: preferred font family and weights.
+- Any existing design system or Figma file to reference?
+
+**Why it matters:**
+The frontend currently uses placeholder colors defined as CSS variables in `globals.css`. Applying real brand colors requires touching only those variables, but without them the UAT with HR will have a different look than production. If a Figma/Zeplin file exists, it also unblocks component spacing and iconography decisions.
+
+**Current assumption:** Brand colors will be provided; no full design system exists — style guide or palette sheet is sufficient.
+
+---
+
+#### Q3 — SSO Provider ✅ Answered · nemanjaninkovic-1
+
+**Answer:** **Azure Active Directory (Azure AD)** via MSAL + OIDC.
+
+**What still needs to be provided:**
+
+- Azure AD **tenant ID**
+- Application (client) **ID** and **client secret** (registered app in Azure AD)
+- **Redirect URIs** to register in the Azure AD app (e.g., `https://<host>/auth/callback`)
+- **AD group → platform role mapping** (which Azure AD group corresponds to EMPLOYEE, LINE_MANAGER, TECH_LEAD, HR_COORDINATOR, GENERAL_MANAGEMENT)
+
+**Implementation notes:**
+
+- Library: `msal` (Python) on the backend, `next-auth` with Azure AD provider on the frontend.
+- Token validation: backend validates Azure AD JWT using JWKS endpoint (`https://login.microsoftonline.com/<tenant>/discovery/v2.0/keys`).
+- Username/password fallback retained for local dev only (`DEV_AUTH=true` env flag).
+- Profile photos can optionally be pulled from Microsoft Graph API (`/me/photo/$value`) — see Q15.
+
+---
+
+#### Q4 — Sample Anonymized Excel from HR ✅ Answered · nemanjaninkovic-1
+
+**Answer:** The Excel file is stored on **SharePoint** and is the **source of truth** for employee skill data. HR maintains it there and provides it for import into the platform.
+
+**Implications:**
+
+- The import wizard must support a **SharePoint URL / file picker** as an upload source (in addition to local file upload), or HR downloads the file and uploads it manually through the wizard UI.
+- The Excel column structure will be confirmed once HR shares the SharePoint file with the team. `nemanjaninkovic-1` must then:
+  1. Map real column headers in `excel_import.py`.
+  2. Confirm proficiency format and update the normalizer.
+  3. Validate against the real file before UAT.
+- Because SharePoint is the source of truth, **conflicting edits** (employee updates in the platform vs. HR updating the SharePoint file) must be resolved by policy: platform edits win unless a new import explicitly overwrites them, or HR imports always override platform data. **This policy must be confirmed with HR before first import.**
+- Future consideration: Microsoft Graph API can pull the file directly from SharePoint on a schedule, removing the manual download step (out of scope for Pillar 01).
+
+---
+
+#### Q5 — Search Ranking: Include Recency of Last Review? 🔴 High · engveselin
+
+**What we need to know:**
+
+- Should the search score be penalized (or boosted) based on how recently an employee completed a review cycle?
+- If yes: what is the recency window (e.g., skills reviewed within 6 months count full; older skills decay)?
+- Should a "stale profile" warning appear in search results if no review was completed in the last cycle?
+
+**Why it matters:**
+The current hybrid score formula is `0.7 × cosine_similarity + 0.3 × ts_rank`. Adding a time-decay component changes the scoring formula and requires `last_reviewed_at` to be indexed and passed into the ranking query. This affects both search result quality and the profile completeness indicator on the frontend.
+
+**Current assumption:** Recency is not included in the score; profiles are ranked by skill match only.
+
+---
+
+#### Q6 — Search Results: Show Employees with 0 Matching Skills? 🔴 High · engveselin
+
+**What we need to know:**
+
+- When a manager searches for "Python developer", should employees with no Python skills appear at the bottom of the result list, or be excluded entirely?
+- If included: is there a minimum score threshold below which results are hidden (e.g., cosine similarity < 0.2)?
+- Should a "no match" indicator be shown on the result card?
+
+**Why it matters:**
+Including zero-match employees increases result set size significantly (up to all 1,400 records). At that scale, PostgreSQL's `ORDER BY score` over a full scan is slower than a filtered HNSW index query. The decision directly affects the search query strategy in `apps/ai-service/search.py` and the pagination UX.
+
+**Current assumption:** Results below a minimum cosine threshold (0.2) are excluded; zero-match employees are not returned.
+
+---
+
+#### Q7 — Pillar 01 MVP Scope 🔴 High · DusanEngIt
+
+**What we need to know:**
+
+- Which of the following features are required for the MVP launch vs. deferred to a later pillar?
+  - Workday sync (vs. manual import only for MVP)
+  - Review cycles (semi-annual + annual)
+  - Custom skill matrices for Line Managers / Tech Leads
+  - Email notifications (vs. in-app only for MVP)
+  - Excel export
+  - GENERAL_MANAGEMENT read-only dashboards
+  - Employee self-service profile editing
+- Is there a hard go-live date for Pillar 01?
+
+**Why it matters:**
+The current spec includes all of the above. If Workday sync or review cycles are deferred, Week 4–5 of the timeline is freed up for hardening core features. Misaligned scope expectations are the #1 risk to the 6-week delivery estimate.
+
+**Current assumption:** All features listed in this spec are in scope for Pillar 01 MVP.
+
+---
+
+#### Q8 — Cloud Provider / Existing Infrastructure ✅ Answered · nemanjaninkovic-1
+
+**Answer:** Cloud infrastructure is **provided by ENG** (ENG Software Lab).
+
+**What still needs to be confirmed:**
+
+- Server specs (RAM/CPU/disk) and OS — Azure B4ms (4 vCPU, 16 GB) remains the reference minimum.
+- Whether Docker and Docker Compose are pre-installed, or must be provisioned.
+- Domain name and whether an SSL certificate already exists, or if Let's Encrypt + nginx should be set up.
+- Storage for Excel export files — local Docker volume (acceptable for single-node) or a blob storage bucket?
+- Firewall/port rules: 80, 443 (nginx), 5432 (Postgres, internal only), 6379 (Redis, internal only).
+
+**Implementation note:** Docker Compose setup is cloud-agnostic — no changes needed to the stack regardless of the underlying VM or cloud account.
+
+---
+
+#### Q9 — Proficiency Validation: Self-Reported or Manager-Confirmed? 🟡 Medium · nemanjaninkovic-1
+
+**What we need to know:**
+
+- After an employee self-reports a proficiency level, does it become immediately visible and searchable, or does it enter a "pending validation" state until a manager confirms it?
+- If validation is required: which role validates — LINE_MANAGER, TECH_LEAD, or both?
+- What happens if a manager never validates? Does the skill expire or remain pending indefinitely?
+- Should unvalidated skills appear in search results with a visual indicator?
+
+**Why it matters:**
+Unvalidated vs. validated proficiency is a DB schema concern (`validated_by UUID`, `validated_at TIMESTAMP`). It also affects the search index — if unvalidated skills are excluded from search, the embedding pipeline must filter by validation status before upserting vectors. Introducing validation after launch requires a migration and a re-embedding of all profiles.
+
+**Current assumption:** Self-reported proficiency is immediately live; managers can override (which triggers a notification). No formal validation gate.
+
+---
+
+#### Q10 — UI Language ✅ Answered · ilija-radonjic
+
+**Answer:** The platform UI will be available in four languages: **Serbian, English, Italian, Albanian**. The AI embedding model (`paraphrase-multilingual-MiniLM-L12-v2`) supports all four languages natively. Next.js `next-intl` will be used for i18n with locale-based routing.
+
+---
+
+#### Q11 — Dispute Flow for Manager-Edited Proficiency 🟡 Medium · nemanjaninkovic-1
+
+**What we need to know:**
+
+- If a manager lowers an employee's self-reported proficiency, can the employee formally dispute the change?
+- If yes: who arbitrates — HR Coordinator, or the manager's own manager?
+- What is the resolution timeline, and does the disputed value revert to self-reported during arbitration or stay at the manager-set value?
+- Should disputes be tracked in the audit log with a dedicated event type?
+
+**Why it matters:**
+Currently the spec records all manager edits in the audit log and sends the employee a notification, but there is no dispute workflow. Adding a dispute system requires a new DB table (`skill_disputes`), new API endpoints, and additional UI. If disputes are out of scope for MVP, the notification must at minimum reference an offline process for employees to follow.
+
+**Current assumption:** No in-platform dispute mechanism for MVP; employees are informed via notification and disputes are handled offline.
+
+---
+
+#### Q12 — SMTP Configuration for Email Notifications 🟡 Medium · nemanjaninkovic-1
+
+**What we need to know:**
+
+- Is there a company SMTP server, or should a transactional email service (SendGrid, SES, Mailgun) be used?
+- SMTP host, port (587/465), TLS/SSL requirement, and auth credentials (username + password or API key).
+- From address and display name for outgoing notifications (e.g., `noreply@company.com`).
+- Are there email sending limits or domain restrictions (SPF/DKIM records to set up)?
+
+**Why it matters:**
+The Celery `send_notification` task currently supports both in-app and email channels. Without SMTP credentials the email channel falls back to in-app only, which may be acceptable for MVP but must be confirmed. If a transactional service is used, the task implementation changes (HTTP API vs. SMTP).
+
+**Current assumption:** SMTP will be provided; in-app notifications are the fallback if it is not available before launch.
+
+---
+
+#### Q13 — Proficiency Format in Existing Excel Files � N/A
+
+**Removed.** This question is superseded by Q4 — the actual Excel file will be provided by HR (see Q4). Format details will be determined from the real file.
+
+---
+
+#### Q14 — Search Filters: Department and Seniority Level? � N/A
+
+**Removed.** Department/seniority filters are not in scope for Pillar 01. Free-text search only.
+
+---
+
+#### Q15 — Employee Profile Photos: Source and Storage 🟡 Medium · ilija-radonjic
+
+**What we need to know:**
+
+- Should profile photos be synced from Workday, pulled from **Azure AD** (via Microsoft Graph API), or uploaded manually by the employee?
+- Accepted file formats and maximum file size (e.g., JPEG/PNG, max 2 MB)?
+- Storage location: Azure Blob Storage, AWS S3, or local Docker volume (not recommended for production)?
+- Should a fallback avatar (initials-based) be shown when no photo is available?
+
+**Why it matters:**
+Photo storage affects the backend (file upload endpoint, size/type validation, storage driver) and the frontend (avatar component, CDN URL vs. API-served bytes). If photos come from Workday or Azure AD, no upload endpoint is needed but the sync job grows in scope. Storage outside the DB volume is required for cloud deployments to avoid data loss on container restart.
+
+**Current assumption:** No profile photo in Pillar 01 MVP; initials-based avatar placeholder shown.
+
+---
+
+#### Q16 — Accessibility and Compliance Requirements 🟡 Medium · ilija-radonjic
+
+**What we need to know:**
+
+- Is WCAG 2.1 Level AA the target, or is Level AAA required for any part of the UI?
+- Are there GDPR obligations for employees in EU countries? If yes: is a Data Processing Agreement (DPA) in place, and is there a right-to-erasure workflow needed?
+- Are there Serbian or Albanian labor law requirements for how employee competency data is stored, accessed, or deleted?
+- Any screen reader testing targets (NVDA, JAWS, VoiceOver)?
+- Is a cookie consent banner required (if any analytics are added later)?
+
+**Why it matters:**
+GDPR right-to-erasure conflicts with the soft-delete-only policy (`is_active = FALSE`). If hard deletion is required, the data model and audit log retention logic must change. Identifying compliance obligations early prevents costly retrofits after launch.
+
+**Current assumption:** WCAG 2.1 AA only; GDPR compliance handled at the organizational level; no in-platform erasure workflow for Pillar 01.
+
+---
+
+#### Q17 — Workday Sync Failure SLA and Alerting 🟡 Medium · DusanEngIt
+
+**What we need to know:**
+
+- If the daily Workday sync at 02:00 fails after 3 retries, what should happen?
+  - Option A: Fail silently — the platform continues with stale data until the next run.
+  - Option B: Alert the engineering team via email or Slack webhook.
+  - Option C: Alert HR Coordinator via in-app notification.
+  - Option D: Block HR edits until sync is confirmed healthy.
+- What is the acceptable staleness window for employee data (e.g., if sync fails for 3 consecutive nights, is that a P1 incident)?
+- Is there a status page or health dashboard where sync state should be exposed?
+
+**Why it matters:**
+The current Celery task marks the job as `FAILED` and logs the error, but no external alert is sent. If the answer is Options B or C, a new alerting mechanism (webhook task or notification event type) must be added. Option D (blocking HR edits) requires a sync health check in the API middleware.
+
+**Current assumption:** Silent fail with 3 retries; engineering monitors via Celery/Flower logs.
+
+---
+
+#### Q18 — Data Retention Policy for Audit Logs and Terminated Employees 🟡 Medium · DusanEngIt
+
+**What we need to know:**
+
+- How long should audit log records be retained (GDPR standard is 6–7 years for HR data)?
+- For terminated employees (soft-deleted with `is_active = FALSE`): when, if ever, can their records be permanently deleted?
+- Should there be an automated purge job (Celery beat task) or a manual HR action?
+- Does the company have an existing data retention policy document that governs this?
+- Do audit logs need to be exportable for compliance audits, or is DB access sufficient?
+
+**Why it matters:**
+Without a defined retention window, audit logs will grow indefinitely. A Celery beat purge task (e.g., delete entries older than 7 years) is straightforward to implement but must be scoped correctly to avoid inadvertently deleting records that are still within the retention window. Terminated employee records also contain personal data — holding them indefinitely may conflict with GDPR Article 17.
+
+**Current assumption:** No automated purge in Pillar 01; data retained indefinitely pending policy confirmation.
 
 ---
 
