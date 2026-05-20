@@ -1159,7 +1159,7 @@ Quick-reference summary:
 | 4 | ~~Sample anonymized Excel from HR~~ ✅ **Answered** — Excel on SharePoint, HR is source of truth | nemanjaninkovic-1 | 🔴 High | ✅ Answered |
 | 5 | ~~Search ranking~~ ✅ **Answered** — most recent review ranks highest (time-decay applied) | engveselin | 🔴 High | ✅ Answered |
 | 6 | ~~Search results — 0 matching skills?~~ ✅ **Answered** — min 70% hybrid score; 10 per page | engveselin | 🔴 High | ✅ Answered |
-| 7 | Pillar 01 MVP scope — what is in vs. deferred? | DusanEngIt | 🔴 High | ⬜ Open |
+| 7 | Pillar 01 MVP scope — what is in vs. deferred? | DusanEngIt | 🔴 High | ⚠️ Guess (§18.3) |
 | 8 | ~~Cloud provider~~ ✅ **Answered** — infrastructure provided by ENG | nemanjaninkovic-1 | 🟡 Medium | ✅ Answered |
 | 9 | ~~Proficiency validation~~ ✅ **Answered** — self-reported, awaiting manager confirmation | nemanjaninkovic-1 | 🟡 Medium | ✅ Answered |
 | 10 | UI language | ilija-radonjic | 🟡 Medium | ✅ Answered |
@@ -1244,7 +1244,7 @@ The sync service is being designed around Workday REST + OAuth 2.0. If the actua
   1. Map real column headers in `excel_import.py`.
   2. Confirm proficiency format and update the normalizer.
   3. Validate against the real file before UAT.
-- Because SharePoint is the source of truth, **conflicting edits** (employee updates in the platform vs. HR updating the SharePoint file) must be resolved by policy: platform edits win unless a new import explicitly overwrites them, or HR imports always override platform data. **This policy must be confirmed with HR before first import.**
+- Because SharePoint is the source of truth, **conflicting edits** (employee updates in the platform vs. HR updating the SharePoint file) must be resolved by policy. See **§18.2** for the educated-guess conflict resolution policy (platform-wins by default, with HR override flag).
 - Future consideration: Microsoft Graph API can pull the file directly from SharePoint on a schedule, removing the manual download step (out of scope for Pillar 01).
 
 ---
@@ -1326,7 +1326,7 @@ total_pages = ceil(len(results) / page_size)
 **Why it matters:**
 The current spec includes all of the above. If Workday sync or review cycles are deferred, Week 4–5 of the timeline is freed up for hardening core features. Misaligned scope expectations are the #1 risk to the 6-week delivery estimate.
 
-**Current assumption:** All features listed in this spec are in scope for Pillar 01 MVP.
+**Current assumption:** See **§18.3** for the educated-guess MVP boundary. DusanEngIt to confirm before Week 2.
 
 ---
 
@@ -1515,7 +1515,103 @@ Without a defined retention window, audit logs will grow indefinitely. A Celery 
 
 ---
 
-## 18. Milestones
+## 18. Educated Guesses — Pending Decisions
+
+> These are reasoned assumptions made in the absence of confirmed answers. They are used as the working basis for implementation. Each must be validated with stakeholders before UAT. If a guess turns out to be wrong, the affected section is noted for change impact.
+
+---
+
+### 18.1 Visibility Rules (Who Sees What)
+
+| Actor | Own data | Subordinates / Team | Other employees | Org-wide |
+| ----- | -------- | ------------------- | --------------- | -------- |
+| `EMPLOYEE` | Full profile + audit history | — | — | — |
+| `LINE_MANAGER` | Full profile | Full profile + skill matrix | Name + department only | — |
+| `TECH_LEAD` | Full profile | Full profile + skill matrix | Name + department only | — |
+| `HR_COORDINATOR` | Full profile | Full profile + skill matrix | Full profile + skill matrix | Analytics dashboards |
+| `GENERAL_MANAGEMENT` | — | — | — | Aggregate dashboards only |
+
+**Guesses applied:**
+
+- Line Managers and Tech Leads **cannot** see skill matrices of employees outside their team. This is enforced server-side — the profile API strips skill data for non-subordinates (see `backend.instructions.md`).
+- Employees **can** see all other employees' basic info (name, department, title) in the directory, but **not** their skill matrix.
+- `GENERAL_MANAGEMENT` sees only aggregate numbers (e.g., headcount per skill, average proficiency per department) — no individual profiles.
+
+**Change impact if wrong:** If Line Managers should see all skill matrices (e.g., for resource planning across teams), the `view_scope` logic in `app/auth/permissions.py` and the profile API response schema must be updated. No DB schema change needed.
+
+---
+
+### 18.2 Source-of-Truth Logic (SharePoint vs. Platform Edits)
+
+The master skill data lives in an Excel file on SharePoint. The platform also allows employees and managers to edit skills directly. This creates a potential conflict on re-import.
+
+**Educated guess — conflict resolution policy:**
+
+| Scenario | Winner | Rationale |
+| -------- | ------ | --------- |
+| Employee edits skill in platform, HR later re-imports same employee row | **Platform wins** | Employee self-service should not be silently overwritten |
+| Manager confirms a skill in platform, HR re-imports a different value | **Platform wins** | Confirmed values are authoritative |
+| HR re-import contains a skill not yet in the platform | **Import wins** | New data, no conflict |
+| HR explicitly triggers a "full override" import (admin flag) | **Import wins** | HR has override capability when needed |
+
+**Implementation:** Each `employee_skill` row carries `last_modified_by_source ENUM('PLATFORM', 'IMPORT')` and `last_modified_at`. On import, a row is skipped if `last_modified_by_source = 'PLATFORM'` and `last_modified_at > import_file_created_at`, unless the import job has `force_override = TRUE`.
+
+**Change impact if wrong:** If HR decides imports always win, remove the skip logic in `import_employees_task`. If they want per-field granularity, the schema needs a `source` column per skill field.
+
+---
+
+### 18.3 MVP Scope (Q7 — Educated Guess)
+
+Q7 is officially open (DusanEngIt to confirm), but the 6-week timeline and team size imply a realistic MVP boundary. **Educated guess:**
+
+| Feature | MVP (Pillar 01) | Deferred |
+| ------- | --------------- | -------- |
+| Azure AD SSO | ✅ | |
+| Employee profile CRUD | ✅ | |
+| Skill self-service (fill matrix) | ✅ | |
+| Proficiency validation flow (PENDING/CONFIRMED) | ✅ | |
+| Excel import from SharePoint | ✅ | |
+| Semantic search + filters + pagination | ✅ | |
+| In-app notifications | ✅ | |
+| Review cycles — semi-annual + annual (HR-triggered) | ✅ | |
+| Ad-hoc review cycles (Manager-triggered) | ✅ | |
+| Custom skill matrices (Line Manager / Tech Lead) | ✅ | |
+| Excel export | ✅ | |
+| Custom roles (HR Coordinator) | ✅ | |
+| Workday sync | ⚠️ Week 4 — may slip to Pillar 02 if Workday API credentials arrive late | |
+| Email notifications (SMTP) | ⚠️ In-app only if SMTP not configured by Week 5 | |
+| GENERAL_MANAGEMENT dashboards | ⚠️ Basic only for MVP | |
+| Employee profile photos | ❌ | Pillar 02 |
+| SharePoint direct integration (Graph API) | ❌ | Pillar 02 |
+| Dispute workflow (in-platform) | ❌ | Pillar 02 |
+| Mobile app | ❌ | Pillar 02+ |
+
+**Change impact if wrong:** Removing Workday sync from MVP frees ~5 days of `nemanjaninkovic-1` time and removes the `workday_sync` Celery task, `workday_service.py`, and the `workday_id` sync logic. Schema stays the same (`workday_id` column is nullable).
+
+---
+
+### 18.4 Requirements vs. Implementation Separation
+
+This spec intentionally mixes **what** the system must do (requirements) with **how** it should be built (implementation). The table below clarifies the boundary:
+
+| Topic | Requirement (WHAT) | Implementation guess (HOW) |
+| ----- | ------------------ | -------------------------- |
+| Search returns ranked employees | ✅ Confirmed requirement | Hybrid score = 0.60/0.25/0.15; pgvector HNSW |
+| 70% minimum match | ✅ Confirmed requirement | `hybrid_score >= 0.70` filter in Python |
+| 10 results per page | ✅ Confirmed requirement | Offset pagination in API |
+| Proficiency is self-reported + confirmed | ✅ Confirmed requirement | `validation_status ENUM` on `employee_skills` |
+| Filters by department / title | ✅ Confirmed requirement | SQL `WHERE` pre-filter before HNSW |
+| Source of truth = SharePoint Excel | ✅ Confirmed requirement | Platform-wins conflict policy — **guess** |
+| Workday sync at 02:00 | Requirement — Workday type TBC | Celery beat + `workday_service.py` — **guess** |
+| Custom roles | ✅ Confirmed requirement | JSONB permissions + union logic — **guess** |
+| Email notifications | Requirement — SMTP TBC | Celery `send_notification` task — **guess** |
+| Azure AD SSO | ✅ Confirmed requirement | MSAL + JWKS validation — **guess on library** |
+
+**Rule:** If a stakeholder changes a ✅ requirement, re-estimate the change impact. If they change a **guess**, it is likely a low-cost swap in one service or task.
+
+---
+
+## 19. Milestones
 
 | Week | Milestone | Owner(s) |
 | ------ | ----------- | ---------- |
