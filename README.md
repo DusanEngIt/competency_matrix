@@ -601,7 +601,7 @@ apps/ai-service/
 | all-MiniLM-L6-v2 | 80MB | English only | ~5ms | Apache 2.0 |
 | multilingual-e5-large | 1.1GB | 100+ | ~40ms | MIT |
 
-**Chosen model handles Serbian + English natively, runs on CPU, free forever.**
+**Chosen model handles Serbian, English, Italian, Albanian and 46 other languages natively, runs on CPU, free forever.**
 
 ### 10.3 Libraries
 
@@ -871,7 +871,7 @@ find /backups -name "*.sql.gz" -mtime +30 -delete
 | Security | TLS 1.3, JWT, RBAC, secrets in env |
 | Accessibility | WCAG 2.1 AA |
 | Mobile | Responsive web |
-| Language | Serbian + English |
+| Language | Serbian, English, Italian, Albanian (i18n) |
 
 ---
 
@@ -898,7 +898,7 @@ workforce-platform/
 | # | Question | Owner | Priority |
 | --- | ---------- | ------- | ---------- |
 | 1 | Workday API type (REST/RAAS/SOAP) + credentials? | nemanjaninkovic-1 | 🔴 High |
-| 2 | Company brand colors (hex)? | ilija-radonjic | 🔴 High |
+| 2 | Company brand colors — provide company palette or style guide | ilija-radonjic | 🔴 High |
 | 3 | SSO provider — Azure AD, Okta, or LDAP? | nemanjaninkovic-1 | 🔴 High |
 | 4 | Sample anonymized Excel export from HR? | nemanjaninkovic-1 | 🔴 High |
 | 5 | Should search rank by recency of last review, or only by proficiency + relevance? | engveselin | 🔴 High |
@@ -906,7 +906,7 @@ workforce-platform/
 | 7 | Which modules are in scope for Pillar 01 MVP vs. deferred to later pillars? | DusanEngIt | 🔴 High |
 | 8 | Cloud provider preference / existing VM? | nemanjaninkovic-1 | 🟡 Medium |
 | 9 | Proficiency self-reported only, or manager must validate? | nemanjaninkovic-1 | 🟡 Medium |
-| 10 | UI language — Serbian, English, or both? | ilija-radonjic | 🟡 Medium |
+| 10 | ~~UI language~~ ✅ **Answered** — Serbian, English, Italian, Albanian (i18n) | ilija-radonjic | 🟡 Medium |
 | 11 | Dispute flow when employee disagrees with manager edit? | nemanjaninkovic-1 | 🟡 Medium |
 | 12 | SMTP server available for email notifications? | nemanjaninkovic-1 | 🟡 Medium |
 | 13 | How is proficiency stored in current Excel? (numbers or text?) | nemanjaninkovic-1 | 🟡 Medium |

@@ -47,7 +47,7 @@ celery -A app.celery worker --loglevel=info                      # local Celery 
 | Decision | Rationale |
 | ---------- | ----------- |
 | **pgvector over Qdrant** | Reuses Postgres; same speed at 1,400 profiles with HNSW index; no extra container |
-| **paraphrase-multilingual-MiniLM-L12-v2** | Handles Serbian + English on CPU; 420MB RAM; Apache 2.0; ~10ms |
+| **paraphrase-multilingual-MiniLM-L12-v2** | Handles Serbian, English, Italian, Albanian + 46 other languages on CPU; 420MB RAM; Apache 2.0; ~10ms |
 | **Hybrid search score** | `0.7 × cosine_similarity + 0.3 × ts_rank` |
 | **Redis caching** | search TTL 5min; profile TTL 1h; taxonomy TTL 24h |
 | **Celery for async** | Excel import (batches of 100); Workday sync at 02:00; profile re-embedding; Excel export |

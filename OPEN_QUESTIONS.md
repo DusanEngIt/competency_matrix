@@ -16,6 +16,7 @@
 **Why it matters:** Determines the entire Workday sync implementation. REST and RAAS require different auth flows and data extraction methods.
 
 **Also needed:**
+
 - Workday tenant URL
 - OAuth2 client ID + secret (or equivalent credentials)
 - Confirmation that a daily sync at 02:00 is acceptable
@@ -36,14 +37,11 @@
 
 ### 3. Brand Colors
 
-**Question:** What are the company's brand hex color values?
+**Question:** What is the company color palette?
 
-**Why it matters:** All UI components use CSS variables. Without the actual colors, the frontend ships with placeholders and requires a full visual pass before UAT.
+**Why it matters:** All UI components use CSS variables. A brand palette document, style guide, or even a list of primary/secondary hex values is sufficient.
 
-**Needed:**
-- Primary color
-- Secondary / accent color
-- Any logo or brand guidelines document
+**Needed:** Company color palette or brand style guide (any format).
 
 **Owner:** ilija-radonjic
 
@@ -85,11 +83,9 @@
 
 ### 7. UI Language
 
-**Question:** Should the platform UI be in Serbian, English, or both (switchable)?
+**✅ ANSWERED** — The platform will support **4 languages: Serbian, English, Italian, and Albanian** (switchable via i18n).
 
-**Why it matters:** Affects all frontend labels, error messages, and email notification templates. Dual-language support requires i18n setup.
-
-**Current assumption:** Serbian primary, English secondary (skill names stored in English for search consistency).
+**Impact:** i18n must be set up in the Next.js frontend from the start. All UI labels, error messages, and email templates must be translatable. Skill names remain stored in English for search consistency.
 
 **Owner:** ilija-radonjic
 
@@ -112,6 +108,7 @@
 **Question:** Is there an SMTP server available for sending email notifications?
 
 **Needed:**
+
 - SMTP host + port
 - Username / password or API key
 - Sender address (e.g., `noreply@company.com`)

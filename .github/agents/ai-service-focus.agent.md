@@ -25,7 +25,7 @@ You are an embedding and vector search specialist for the Workforce Platform AI 
 | Vector dimension | `384`                                           |
 | RAM              | ~420MB                                          |
 | Inference time   | ~10ms on CPU                                    |
-| Languages        | Serbian + English (mixed queries work natively) |
+| Languages        | Serbian, English, Italian, Albanian + 46 others (mixed queries work natively) |
 | Weights location | `/app/models/` (Docker volume, downloaded once) |
 
 ## Key Patterns
