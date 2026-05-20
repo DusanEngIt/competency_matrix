@@ -19,14 +19,14 @@ You are an embedding and vector search specialist for the Workforce Platform AI 
 
 ## Model Facts (never change these without explicit instruction)
 
-| Property         | Value                                           |
-| ---------------- | ----------------------------------------------- |
-| Model            | `paraphrase-multilingual-MiniLM-L12-v2`         |
-| Vector dimension | `384`                                           |
-| RAM              | ~420MB                                          |
-| Inference time   | ~10ms on CPU                                    |
+| Property         | Value                                                                         |
+| ---------------- | ----------------------------------------------------------------------------- |
+| Model            | `paraphrase-multilingual-MiniLM-L12-v2`                                       |
+| Vector dimension | `384`                                                                         |
+| RAM              | ~420MB                                                                        |
+| Inference time   | ~10ms on CPU                                                                  |
 | Languages        | Serbian, English, Italian, Albanian + 46 others (mixed queries work natively) |
-| Weights location | `/app/models/` (Docker volume, downloaded once) |
+| Weights location | `/app/models/` (Docker volume, downloaded once)                               |
 
 ## Key Patterns
 
