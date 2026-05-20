@@ -142,13 +142,13 @@ SOFT SKILLS
 ├── Adaptability & Learning Agility
 ├── Client Facing / Stakeholder Management
 ├── Mentoring & Knowledge Transfer
-├── Estimation                      — realistic estimation of time, effort, and complexity
-├── Requirements Understanding      — clear grasp of goals, context, and expectations
-├── Work Breakdown (WBS)            — decomposing work into clear, manageable, logical steps
+├── Estimation                      — realistic assessment of time, effort, and complexity, aligned with task scope
+├── Requirements Understanding      — clear understanding of goals, context, and expectations
+├── Work Breakdown (WBS)            — breaking down work into clear, manageable, and logical steps
 ├── Risk Awareness                  — timely identification and addressing of risks
-├── Ownership & Accountability      — taking responsibility from start to finish
-├── Stakeholder Communication       — clear, timely, and audience-appropriate communication
-└── Delivery Reliability            — consistent delivery on agreed timelines and quality
+├── Independence & Ownership        — taking responsibility from start to finish
+├── Stakeholder Communication       — clear, timely, and tailored communication
+└── Delivery Reliability            — consistent delivery within agreed timelines and quality
 ```
 
 ### 4.2 Proficiency Scale
