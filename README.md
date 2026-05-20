@@ -11,10 +11,10 @@
 
 | Engineer | Role | Owns |
 | ---------- | ------ | ------ |
-| **engineer-2** | 🏗️ Tech Lead | Architecture decisions, cross-team coordination, code review, delivery oversight |
+| **DusanEngIt** | 🏗️ Tech Lead | Architecture decisions, cross-team coordination, code review, delivery oversight |
 | **nemanjaninkovic-1** | ⚙️ Backend Engineer | Auth, Workday sync, DB schema/migrations, Docker setup, all FastAPI routes, skill CRUD, Excel import/export, notifications |
-| **engineer-3** | 🤖 AI / Search Engineer | Embedding model, pgvector search, semantic pipeline, caching |
-| **engineer-4** | 🎨 Frontend Engineer | Next.js UI, company branding, search UI, profile pages, import wizard |
+| **engveselin** | 🤖 AI / Search Engineer | Embedding model, pgvector search, semantic pipeline, caching |
+| **ilija-radonjic** | 🎨 Frontend Engineer | Next.js UI, company branding, search UI, profile pages, import wizard |
 
 ---
 
@@ -61,6 +61,9 @@ A **cloud-hosted, fully Dockerized workforce platform** for 1,400 employees that
 │ Employee (all 1,400) │ All profiles  │ Own profile only                 │
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
 │ Line Manager         │ All profiles  │ Subordinates                     │
+│                      │               │ ⚠️ Notifies employee on change   │
+├──────────────────────┼───────────────┼──────────────────────────────────┤
+│ Tech Lead            │ All profiles  │ Team members                     │
 │                      │               │ ⚠️ Notifies employee on change   │
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
 │ HR Coordinator       │ All + analytics│ Taxonomy, bulk import, reviews  │
@@ -857,8 +860,8 @@ workforce-platform/
 ├── .env.example
 ├── apps/
 │   ├── backend/                     # FastAPI — nemanjaninkovic-1
-│   ├── frontend/                    # Next.js — engineer-4
-│   └── ai-service/                  # Embeddings + search — engineer-3
+│   ├── frontend/                    # Next.js — ilija-radonjic
+│   └── ai-service/                  # Embeddings + search — engveselin
 ├── nginx/nginx.conf
 ├── db/migrations/
 └── README.md                        # this file
@@ -871,12 +874,12 @@ workforce-platform/
 | # | Question | Owner | Priority |
 | --- | ---------- | ------- | ---------- |
 | 1 | Workday API type (REST/RAAS/SOAP) + credentials? | nemanjaninkovic-1 | 🔴 High |
-| 2 | Company brand colors (hex)? | engineer-4 | 🔴 High |
+| 2 | Company brand colors (hex)? | ilija-radonjic | 🔴 High |
 | 3 | SSO provider — Azure AD, Okta, or LDAP? | nemanjaninkovic-1 | 🔴 High |
 | 4 | Sample anonymized Excel export from HR? | nemanjaninkovic-1 | 🔴 High |
 | 5 | Cloud provider preference / existing VM? | nemanjaninkovic-1 | 🟡 Medium |
 | 6 | Proficiency self-reported only, or manager must validate? | nemanjaninkovic-1 | 🟡 Medium |
-| 7 | UI language — Serbian, English, or both? | engineer-4 | 🟡 Medium |
+| 7 | UI language — Serbian, English, or both? | ilija-radonjic | 🟡 Medium |
 | 8 | Dispute flow when employee disagrees with manager edit? | nemanjaninkovic-1 | 🟡 Medium |
 | 9 | SMTP server available for email notifications? | nemanjaninkovic-1 | 🟡 Medium |
 | 10 | How is proficiency stored in current Excel? (numbers or text?) | nemanjaninkovic-1 | 🟡 Medium |
@@ -888,16 +891,16 @@ workforce-platform/
 | Week | Milestone | Owner(s) |
 | ------ | ----------- | ---------- |
 | 1 | Docker compose running, DB schema + pgvector setup, migrations | nemanjaninkovic-1 |
-| 1 | AI service running, embedding model loaded, /embed endpoint live | engineer-3 |
+| 1 | AI service running, embedding model loaded, /embed endpoint live | engveselin |
 | 2 | FastAPI auth endpoints (login, SSO, refresh) | nemanjaninkovic-1 |
 | 2 | Employee + skill CRUD endpoints | nemanjaninkovic-1 |
-| 2 | Next.js scaffolded, branding applied, routing set up | engineer-4 |
-| 3 | Excel import wizard end-to-end | nemanjaninkovic-1 + engineer-4 |
-| 3 | Semantic search endpoint + Redis caching | engineer-3 + nemanjaninkovic-1 |
-| 4 | Search UI, profile view, skill editing UI | engineer-4 |
+| 2 | Next.js scaffolded, branding applied, routing set up | ilija-radonjic |
+| 3 | Excel import wizard end-to-end | nemanjaninkovic-1 + ilija-radonjic |
+| 3 | Semantic search endpoint + Redis caching | engveselin + nemanjaninkovic-1 |
+| 4 | Search UI, profile view, skill editing UI | ilija-radonjic |
 | 4 | Workday sync service (daily cron) | nemanjaninkovic-1 |
 | 5 | Notification system (in-app + email) | nemanjaninkovic-1 |
-| 5 | Review cycle management | nemanjaninkovic-1 + engineer-4 |
+| 5 | Review cycle management | nemanjaninkovic-1 + ilija-radonjic |
 | 6 | Cloud deploy, SSL, smoke testing, UAT with HR | Full team |
 
 ---

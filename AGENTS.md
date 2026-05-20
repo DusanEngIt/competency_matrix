@@ -12,10 +12,10 @@ Cloud-hosted, fully Dockerized workforce platform for 1,400 employees — **Pill
 
 | Engineer | Role | Owns |
 | ---------- | ------ | ------ |
-| `engineer-2` | Tech Lead | Architecture decisions, cross-team coordination, code review, delivery oversight |
+| `DusanEngIt` | Tech Lead | Architecture decisions, cross-team coordination, code review, delivery oversight |
 | `nemanjaninkovic-1` | Backend Engineer | Auth, Workday sync, DB schema/migrations, Docker, all FastAPI routes, skill CRUD, Excel import/export, notifications |
-| `engineer-3` | AI / Search Engineer | Embedding model, pgvector search, hybrid re-ranking, caching |
-| `engineer-4` | Frontend Engineer | Next.js UI, search UI, profile pages, import/export wizard |
+| `engveselin` | AI / Search Engineer | Embedding model, pgvector search, hybrid re-ranking, caching |
+| `ilija-radonjic` | Frontend Engineer | Next.js UI, search UI, profile pages, import/export wizard |
 
 ## Repository Layout
 
@@ -26,8 +26,8 @@ workforce-platform/
 ├── .env.example
 ├── apps/
 │   ├── backend/                  # FastAPI — nemanjaninkovic-1
-│   ├── frontend/                 # Next.js (TypeScript) — engineer-4
-│   └── ai-service/               # Embeddings + search — engineer-3
+│   ├── frontend/                 # Next.js (TypeScript) — ilija-radonjic
+│   └── ai-service/               # Embeddings + search — engveselin
 ├── nginx/nginx.conf
 └── db/migrations/                # Alembic
 ```
@@ -60,6 +60,7 @@ celery -A app.celery worker --loglevel=info                      # local Celery 
 | ------ | ---------- | -------------- |
 | `EMPLOYEE` | Own profile only | Own profile |
 | `LINE_MANAGER` | Subordinates (notifies employee on every change) | Team only |
+| `TECH_LEAD` | Team members (notifies employee on every change) | Team only |
 | `HR_COORDINATOR` | All profiles, taxonomy, bulk import + export | Full workforce |
 | `GENERAL_MANAGEMENT` | Read-only dashboards | None |
 

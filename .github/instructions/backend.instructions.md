@@ -33,7 +33,7 @@ app/
 Check role inside route handler via decoded JWT — do not trust client-supplied role claims:
 
 ```python
-# Roles: EMPLOYEE | LINE_MANAGER | HR_COORDINATOR | GENERAL_MANAGEMENT
+# Roles: EMPLOYEE | LINE_MANAGER | TECH_LEAD | HR_COORDINATOR | GENERAL_MANAGEMENT
 if current_user.role not in ("HR_COORDINATOR",):
     raise HTTPException(status_code=403, detail="Forbidden")
 ```
@@ -60,7 +60,7 @@ await redis.delete_pattern("taxonomy:*")
 ## Excel Export
 
 - Endpoint: `POST /api/export` → enqueues `export_task`; `GET /api/export/{job_id}/status`; `GET /api/export/{job_id}/download`
-- Scope enforced by role: `HR_COORDINATOR` → full workforce; `LINE_MANAGER` → subordinates only; `EMPLOYEE` → own profile only
+- Scope enforced by role: `HR_COORDINATOR` → full workforce; `LINE_MANAGER` + `TECH_LEAD` → subordinates/team only; `EMPLOYEE` → own profile only
 - Generated server-side with `openpyxl`; never stream large exports synchronously — always use Celery
 - Column mapping uses English field names: `First Name`, `Last Name`, `Department`, `Position`, `Technology`, `Category`, `Level (1-5)`, `Years of Exp`, `Notes`
 
