@@ -301,6 +301,24 @@ STEP 5 — BACKGROUND PROCESSING (Celery)
 ### 5.2 Import Flow Diagram
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "primaryColor": "#c51b88",
+    "primaryTextColor": "#fcfcfc",
+    "primaryBorderColor": "#8c1e74",
+    "lineColor": "#323551",
+    "secondaryColor": "#f4d1e8",
+    "tertiaryColor": "#323551",
+    "tertiaryTextColor": "#fcfcfc",
+    "background": "#fcfcfc",
+    "nodeBorder": "#8c1e74",
+    "clusterBkg": "#f4d1e8",
+    "titleColor": "#161721",
+    "edgeLabelBackground": "#f4d1e8",
+    "fontFamily": "ui-sans-serif, system-ui, sans-serif"
+  }
+}}%%
 flowchart TD
     A([HR downloads Excel\nfrom SharePoint]) --> B[Upload .xlsx via wizard\nPOST /api/import/upload]
     B --> C[Column Mapping\nMap Excel headers → platform fields]
@@ -667,6 +685,24 @@ Ranked employee list returned in < 100ms (cold)
 ### 7.2a Search Flow Diagram
 
 ```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "primaryColor": "#c51b88",
+    "primaryTextColor": "#fcfcfc",
+    "primaryBorderColor": "#8c1e74",
+    "lineColor": "#323551",
+    "secondaryColor": "#f4d1e8",
+    "tertiaryColor": "#323551",
+    "tertiaryTextColor": "#fcfcfc",
+    "background": "#fcfcfc",
+    "nodeBorder": "#8c1e74",
+    "clusterBkg": "#f4d1e8",
+    "titleColor": "#161721",
+    "edgeLabelBackground": "#f4d1e8",
+    "fontFamily": "ui-sans-serif, system-ui, sans-serif"
+  }
+}}%%
 flowchart TD
     A([User enters query + optional filters\ndepartment / title / role type]) --> B{Redis cache hit?\nsearch:sha256 query+filters+page}
     B -- Hit --> Z([Return cached result\n< 10ms])
