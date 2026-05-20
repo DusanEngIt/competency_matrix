@@ -44,9 +44,14 @@ Check role inside route handler via decoded JWT — do not trust client-supplied
 
 ```python
 # Built-in roles: EMPLOYEE | LINE_MANAGER | TECH_LEAD | HR_COORDINATOR | GENERAL_MANAGEMENT
+# LINE_MANAGER / TECH_LEAD view scope:
+#   - own subordinates/team: full profile + matrix accessible
+#   - other employees: name + department only (skill data must be excluded from response)
 if current_user.role not in ("HR_COORDINATOR",):
     raise HTTPException(status_code=403, detail="Forbidden")
 ```
+
+**Profile response scope enforcement:** When `LINE_MANAGER` or `TECH_LEAD` requests a profile for a non-subordinate, return only `{id, full_name, department, title}` — strip all skill data server-side. Never rely on frontend to hide this.
 
 **Custom roles:** In addition to the built-in role, employees may have custom roles assigned via `employee_custom_roles`. To check a custom permission:
 

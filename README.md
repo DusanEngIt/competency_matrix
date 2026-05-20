@@ -295,6 +295,82 @@ STEP 5 — BACKGROUND PROCESSING (Celery)
 
 ## 6. Functional Requirements
 
+### 6.0 Role-Based UI Flows
+
+#### Employee — Application Experience
+
+```text
+LOGIN (Azure AD SSO)
+      │
+      ▼
+HOME / DASHBOARD
+  ├── Notifications badge — pending review requests, manager edits
+  ├── "Fill in your matrix" banner — shown during active review window
+  └── Quick link → own profile
+
+MY PROFILE
+  ├── Basic info (read-only, synced from Workday)
+  ├── Hard Skills tab
+  │   ├── List of skills with proficiency level + years of exp
+  │   └── Editable only during active review window OR always
+  │       (depending on Q9 answer — see Open Questions)
+  ├── Soft Skills tab
+  │   └── Same as Hard Skills
+  ├── Audit History tab
+  │   └── Full changelog: who changed what and when
+  └── Export own profile → .xlsx
+
+MATRIX FILL FLOW (triggered by review cycle or manager request)
+  ├── Notification received (in-app + email)
+  ├── Employee opens assigned matrix
+  ├── For each skill: selects proficiency (1–5) + optional notes
+  ├── Saves (progress auto-saved as draft)
+  └── Submits → manager notified of completion
+
+ACTIVE REVIEW WINDOWS
+  ├── Semi-annual — HR-triggered, platform-wide
+  ├── Annual — HR-triggered, manager sign-off required
+  └── Ad-hoc — triggered by Line Manager / Tech Lead at any time
+```
+
+#### Line Manager — Application Experience
+
+```text
+LOGIN (Azure AD SSO)
+      │
+      ▼
+HOME / DASHBOARD
+  ├── Notifications badge
+  ├── Pending matrix completions from subordinates
+  └── Review cycle status summary for team
+
+MY TEAM (subordinates only — full access)
+  ├── List of direct reports with completion status
+  ├── Click employee → full profile + skill matrix
+  ├── Edit any skill → employee notified automatically
+  └── Export team matrix → .xlsx
+
+OTHER EMPLOYEES (non-subordinates — limited view)
+  ├── Visible in employee directory and search results
+  ├── Name, department, position shown
+  └── Skill matrix is HIDDEN — no access
+
+MATRIX MANAGEMENT
+  ├── "Request matrix fill" — send to one or all subordinates at any time
+  ├── Create new matrix:
+  │   ├── Option A: pick from existing default matrix templates
+  │   ├── Option B: select existing skills from taxonomy
+  │   └── Option C: propose new skills (submitted to HR for approval)
+  ├── Assign matrix to one or more subordinates
+  ├── Set deadline
+  ├── Track completion progress per employee
+  └── View results when employees submit
+
+REVIEW CYCLES
+  ├── Participate in HR-triggered semi-annual / annual cycles
+  └── Trigger ad-hoc cycle at any time (project start/end, role change)
+```
+
 ### 6.1 Employee Profile
 
 ```text
