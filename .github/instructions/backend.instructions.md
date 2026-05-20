@@ -13,10 +13,9 @@ applyTo: "apps/backend/**"
 
 ## Team Split
 
-| Engineer            | Owns                                                                          |
-| ------------------- | ----------------------------------------------------------------------------- |
-| `nemanjaninkovic-1` | Auth endpoints, Workday sync, DB schema/migrations, Docker setup, code review |
-| `engineer-2`        | Employee/skill CRUD routes, Excel import, Excel export, notifications         |
+| Engineer            | Owns                                                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `nemanjaninkovic-1` | All backend: auth, Workday sync, DB schema/migrations, Docker, skill CRUD, Excel import/export, notifications |
 
 ## Project Structure
 

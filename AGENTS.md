@@ -12,8 +12,7 @@ Cloud-hosted, fully Dockerized workforce platform for 1,400 employees — **Pill
 
 | Engineer | Role | Owns |
 | ---------- | ------ | ------ |
-| `nemanjaninkovic-1` | Backend Engineer | Auth, Workday sync, DB schema/migrations, Docker, code review |
-| `engineer-2` | Backend Engineer | Employee/skill CRUD, Excel import, Excel export, notifications |
+| `nemanjaninkovic-1` | Backend Engineer | Auth, Workday sync, DB schema/migrations, Docker, all FastAPI routes, skill CRUD, Excel import/export, notifications |
 | `engineer-3` | AI / Search Engineer | Embedding model, pgvector search, hybrid re-ranking, caching |
 | `engineer-4` | Frontend Engineer | Next.js UI, search UI, profile pages, import/export wizard |
 
@@ -25,7 +24,7 @@ workforce-platform/
 ├── docker-compose.override.yml   # local dev hot-reload
 ├── .env.example
 ├── apps/
-│   ├── backend/                  # FastAPI — nemanjaninkovic-1 + engineer-2
+│   ├── backend/                  # FastAPI — nemanjaninkovic-1
 │   ├── frontend/                 # Next.js (TypeScript) — engineer-4
 │   └── ai-service/               # Embeddings + search — engineer-3
 ├── nginx/nginx.conf
