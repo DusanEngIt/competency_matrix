@@ -26,7 +26,8 @@
 15. [Non-Functional Requirements](#15-non-functional-requirements)
 16. [Repository Structure](#16-repository-structure)
 17. [Open Questions](#17-open-questions)
-18. [Milestones](#18-milestones)
+18. [Educated Guesses — Pending Decisions](#18-educated-guesses--pending-decisions)
+19. [Milestones](#19-milestones)
 
 ---
 
