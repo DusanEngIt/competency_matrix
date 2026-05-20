@@ -386,7 +386,7 @@ CUSTOM MATRIX FLOW
 ### 7.2 Semantic Search Pipeline
 
 ```text
-User query: "cloud architecture, team leadership"
+User query: "cloud architecture, team leadership" + filters: {department: "Engineering", title: "PM"}
       │
       ▼
 ┌─────────────────────────────────────────────────────┐
@@ -399,16 +399,20 @@ User query: "cloud architecture, team leadership"
 │     → 384-dim vector · ~10ms on CPU · 420MB RAM     │
 │     → Apache 2.0 · no API cost · no GPU needed      │
 │                                                     │
-│  3. pgvector cosine similarity search               │
+│  3. Pre-filter (SQL WHERE before vector search)     │
+│     department = ? AND/OR title ILIKE ?             │
+│     Reduces candidate set before HNSW step          │
+│                                                     │
+│  4. pgvector cosine similarity search               │
 │     SELECT employees ORDER BY                       │
 │     embedding <=> query_vector LIMIT 50             │
 │     (HNSW index — ~5ms for 1,400 profiles)          │
 │                                                     │
-│  4. Hybrid re-ranking                               │
+│  5. Hybrid re-ranking                               │
 │     score = 0.7 × vector_score                      │
 │           + 0.3 × PostgreSQL full-text (ts_rank)    │
 │                                                     │
-│  5. Cache result in Redis                           │
+│  6. Cache result in Redis                           │
 │     Key: search:{sha256(query+filters)}  TTL: 5min  │
 └─────────────────────────────────────────────────────┘
       │
@@ -761,19 +765,30 @@ apps/frontend/
 
 ### 11.2 Brand Colors
 
+Derived from [eng.it](https://www.eng.it/en) — source: production CSS.
+
 ```css
-/* Replace with actual company hex values */
 :root {
-  --color-primary:         #YOUR_PRIMARY;
-  --color-primary-dark:    #YOUR_DARK;
-  --color-secondary:       #YOUR_SECONDARY;
-  --color-background:      #FAFAFA;
-  --color-surface:         #FFFFFF;
-  --color-text-primary:    #1A1A2E;
-  --color-text-secondary:  #6B7280;
-  --color-success:         #10B981;
-  --color-warning:         #F59E0B;
-  --color-error:           #EF4444;
+  /* ENG Brand — Primary Magenta */
+  --color-primary:         #c51b88;
+  --color-primary-dark:    #8c1e74;
+  --color-primary-light:   #f4d1e8;
+
+  /* ENG Brand — Dark Surfaces */
+  --color-dark-navy:       #323551;
+  --color-near-black:      #161721;
+
+  /* Neutral */
+  --color-background:      #fcfcfc;
+  --color-surface:         #ffffff;
+  --color-text-primary:    #090909;
+  --color-text-secondary:  #9d9d9d;
+
+  /* Semantic */
+  --color-success:         #198754;
+  --color-warning:         #ffc107;
+  --color-error:           #da1e28;
+  --color-info:            #323551;
 }
 ```
 
@@ -999,7 +1014,7 @@ Quick-reference summary:
 | # | Question | Owner | Priority | Status |
 | --- | ---------- | ------- | ---------- | ------ |
 | 1 | Workday API type + credentials | nemanjaninkovic-1 | 🔴 High | ⬜ Open |
-| 2 | Company brand colors / style guide | ilija-radonjic | 🔴 High | ⬜ Open |
+| 2 | ~~Company brand colors~~ ✅ **Answered** — ENG brand palette extracted from eng.it | ilija-radonjic | 🔴 High | ✅ Answered |
 | 3 | ~~SSO provider~~ ✅ **Answered** — Azure Active Directory (MSAL / OIDC) | nemanjaninkovic-1 | 🔴 High | ✅ Answered |
 | 4 | ~~Sample anonymized Excel from HR~~ ✅ **Answered** — Excel on SharePoint, HR is source of truth | nemanjaninkovic-1 | 🔴 High | ✅ Answered |
 | 5 | Search ranking — include recency of last review? | engveselin | 🔴 High | ⬜ Open |
@@ -1011,7 +1026,7 @@ Quick-reference summary:
 | 11 | Dispute flow for manager-edited proficiency | nemanjaninkovic-1 | 🟡 Medium | ⬜ Open |
 | 12 | SMTP configuration for email notifications | nemanjaninkovic-1 | 🟡 Medium | ⬜ Open |
 | 13 | ~~Proficiency format in current Excel files~~ — N/A | nemanjaninkovic-1 | 🟡 Medium | 🚫 N/A |
-| 14 | ~~Search filters — department and seniority level?~~ — N/A | engveselin | 🟡 Medium | 🚫 N/A |
+| 14 | Search filters — department, position, role type (PM etc.) | engveselin | 🔴 High | ✅ Answered |
 | 15 | Employee profile photos — source and storage | ilija-radonjic | 🟡 Medium | ⬜ Open |
 | 16 | Accessibility and compliance requirements | ilija-radonjic | 🟡 Medium | ⬜ Open |
 | 17 | Workday sync failure SLA and alerting | DusanEngIt | 🟡 Medium | ⬜ Open |
@@ -1039,19 +1054,22 @@ The sync service is being designed around Workday REST + OAuth 2.0. If the actua
 
 ---
 
-#### Q2 — Company Brand Colors / Style Guide 🔴 High · ilija-radonjic
+#### Q2 — Company Brand Colors ✅ Answered · ilija-radonjic
 
-**What we need to know:**
+**Answer:** Brand colors extracted from [eng.it](https://www.eng.it/en) CSS.
 
-- Primary, secondary, and accent hex color values.
-- Logo file(s) in SVG format (light and dark variants if available).
-- Typography: preferred font family and weights.
-- Any existing design system or Figma file to reference?
+| Token | Hex | Usage |
+| ----- | --- | ----- |
+| Primary | `#c51b88` | Buttons, links, active states, highlights |
+| Primary Dark | `#8c1e74` | Hover/pressed states on primary |
+| Primary Light | `#f4d1e8` | Backgrounds, badges, subtle tints |
+| Dark Navy | `#323551` | Headers, sidebar, dark surfaces |
+| Near Black | `#161721` | Page backgrounds (dark mode) / deep contrast |
+| Text Primary | `#090909` | Body text |
+| Background | `#fcfcfc` | Page background |
+| Neutral | `#9d9d9d` | Borders, disabled states, secondary text |
 
-**Why it matters:**
-The frontend currently uses placeholder colors defined as CSS variables in `globals.css`. Applying real brand colors requires touching only those variables, but without them the UAT with HR will have a different look than production. If a Figma/Zeplin file exists, it also unblocks component spacing and iconography decisions.
-
-**Current assumption:** Brand colors will be provided; no full design system exists — style guide or palette sheet is sufficient.
+**Still needed:** Logo SVG file(s) for light and dark backgrounds. Typography (font family) not identified from CSS — confirm with HR/design team.
 
 ---
 
@@ -1218,9 +1236,24 @@ The Celery `send_notification` task currently supports both in-app and email cha
 
 ---
 
-#### Q14 — Search Filters: Department and Seniority Level? � N/A
+#### Q14 — Search Filters ✅ Answered · engveselin
 
-**Removed.** Department/seniority filters are not in scope for Pillar 01. Free-text search only.
+**Answer:** Search **must support structured filters** alongside free-text query. Filters are applied as SQL `WHERE` clauses before the HNSW vector similarity step (pre-filter).
+
+**Supported filter dimensions:**
+
+| Filter | Field | Source |
+| ------ | ----- | ------ |
+| Department | `employees.department` | Workday sync / Excel import |
+| Position / Role type | `employees.title` | Workday sync / Excel import |
+| Role category | e.g., "PM", "Dev", "Architect" | Derived from `title` or explicit field |
+
+**Implementation notes:**
+- Filters passed as optional params to `POST /api/search`: `department`, `title`.
+- Pre-filtering reduces the HNSW candidate set before the `<=>` cosine operator.
+- Redis cache key includes filter values: `search:{sha256(query + sorted(filters))}`.
+- `employees.department` and `employees.title` must have B-tree indexes.
+- Search UI exposes filter dropdowns populated from `GET /api/employees/filters` (distinct department + title values).
 
 ---
 

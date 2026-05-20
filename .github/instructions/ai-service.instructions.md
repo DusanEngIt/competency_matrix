@@ -30,14 +30,22 @@ Never change these weights without benchmarking against the full 1,400-profile d
 
 ## pgvector Query Pattern
 
+Search supports optional pre-filters on `department` and `title`. Apply them as `WHERE` clauses **before** the `<=>` vector operator so the HNSW index scans a smaller candidate set:
+
 ```sql
--- ANN search with HNSW index (~5ms at 1,400 rows)
+-- ANN search with optional pre-filters (~5ms at 1,400 rows)
 SELECT id, 1 - (profile_embedding <=> $1::vector) AS cosine_score
 FROM employees
 WHERE is_active = TRUE
+  AND ($2::text IS NULL OR department = $2)
+  AND ($3::text IS NULL OR title ILIKE '%' || $3 || '%')
 ORDER BY profile_embedding <=> $1::vector
 LIMIT 50;
 ```
+
+- `department` and `title` accept `None` to skip the filter (no-op).
+- Redis cache key must include all active filter values: `search:{sha256(query + json.dumps(sorted_filters))}`.
+- `GET /api/employees/filters` returns distinct `department` and `title` values for the search UI dropdowns.
 
 ## Profile Vector
 
