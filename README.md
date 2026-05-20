@@ -86,21 +86,26 @@ Five system roles are pre-defined and cannot be deleted:
 ┌──────────────────────┬───────────────┬──────────────────────────────────┐
 │ ROLE                 │ VIEW          │ EDIT                             │
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
-│ Employee (all 1,400) │ All profiles  │ Own profile only                 │
+│ Employee (all 1,400) │ Hierarchy     │ Own profile only                 │
+│                      │ (name, dept,  │                                  │
+│                      │  title, org   │                                  │
+│                      │  chart only — │                                  │
+│                      │  no matrices) │                                  │
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
-│ Line Manager         │ All profiles  │ Subordinates                     │
-│                      │               │ ⚠️ Notifies employee on change   │
-│                      │               │ ✦ Create custom skill matrices   │
-│                      │               │ ✦ Propose new skills for matrix  │
-│                      │               │ ✦ Trigger ad-hoc review cycles   │
-│                      │               │   (before/after project, outside │
+│ Line Manager         │ Hierarchy     │ Subordinates                     │
+│                      │ (name, dept,  │ ⚠️ Notifies employee on change   │
+│                      │  title, org   │ ✦ Create custom skill matrices   │
+│                      │  chart) +     │ ✦ Propose new skills for matrix  │
+│                      │ full matrix   │ ✦ Trigger ad-hoc review cycles   │
+│                      │ for own team  │   (before/after project, outside │
 │                      │               │   standard semi-annual/annual)   │
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
-│ Tech Lead            │ All profiles  │ Team members                     │
-│                      │               │ ⚠️ Notifies employee on change   │
-│                      │               │ ✦ Create custom skill matrices   │
-│                      │               │ ✦ Propose new skills for matrix  │
-│                      │               │ ✦ Trigger ad-hoc review cycles   │
+│ Tech Lead            │ Hierarchy     │ Team members                     │
+│                      │ (name, dept,  │ ⚠️ Notifies employee on change   │
+│                      │  title, org   │ ✦ Create custom skill matrices   │
+│                      │  chart) +     │ ✦ Propose new skills for matrix  │
+│                      │ full matrix   │ ✦ Trigger ad-hoc review cycles   │
+│                      │ for own team  │                                  │
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
 │ HR Coordinator       │ All + analytics│ Taxonomy, bulk import, reviews  │
 │                      │               │ ✦ Create / edit / delete custom  │
@@ -1524,18 +1529,18 @@ Without a defined retention window, audit logs will grow indefinitely. A Celery 
 
 ### 18.1 Visibility Rules (Who Sees What)
 
-| Actor | Own data | Subordinates / Team | Other employees | Org-wide |
-| ----- | -------- | ------------------- | --------------- | -------- |
-| `EMPLOYEE` | Full profile + audit history | — | — | — |
-| `LINE_MANAGER` | Full profile | Full profile + skill matrix | Name + department only | — |
-| `TECH_LEAD` | Full profile | Full profile + skill matrix | Name + department only | — |
+| Actor | Own data | Subordinates / Team | Other employees (outside team) | Org-wide |
+| ----- | -------- | ------------------- | ------------------------------ | -------- |
+| `EMPLOYEE` | Full profile + audit history | — | Hierarchy only (name, dept, title, org chart) — no skill matrix | — |
+| `LINE_MANAGER` | Full profile | Full profile + skill matrix | Hierarchy only — no skill matrix | — |
+| `TECH_LEAD` | Full profile | Full profile + skill matrix | Hierarchy only — no skill matrix | — |
 | `HR_COORDINATOR` | Full profile | Full profile + skill matrix | Full profile + skill matrix | Analytics dashboards |
 | `GENERAL_MANAGEMENT` | — | — | — | Aggregate dashboards only |
 
 **Guesses applied:**
 
 - Line Managers and Tech Leads **cannot** see skill matrices of employees outside their team. This is enforced server-side — the profile API strips skill data for non-subordinates (see `backend.instructions.md`).
-- Employees **can** see all other employees' basic info (name, department, title) in the directory, but **not** their skill matrix.
+- Employees can browse the org directory (name, department, title, org chart position) for all 1,400 employees, but **cannot** see anyone else's skill matrix.
 - `GENERAL_MANAGEMENT` sees only aggregate numbers (e.g., headcount per skill, average proficiency per department) — no individual profiles.
 
 **Change impact if wrong:** If Line Managers should see all skill matrices (e.g., for resource planning across teams), the `view_scope` logic in `app/auth/permissions.py` and the profile API response schema must be updated. No DB schema change needed.
