@@ -111,7 +111,8 @@ Five system roles are pre-defined and cannot be deleted:
 │                      │               │ ✦ Create / edit / delete custom  │
 │                      │               │   roles (see §3.2)               │
 ├──────────────────────┼───────────────┼──────────────────────────────────┤
-│ General Management   │ Dashboards    │ No editing                       │
+│ General Management   │ All profiles  │ No editing                       │
+│                      │ + analytics   │                                  │
 └──────────────────────┴───────────────┴──────────────────────────────────┘
 ```
 
@@ -1535,13 +1536,13 @@ Without a defined retention window, audit logs will grow indefinitely. A Celery 
 | `LINE_MANAGER` | Full profile | Full profile + skill matrix | Hierarchy only — no skill matrix | — |
 | `TECH_LEAD` | Full profile | Full profile + skill matrix | Hierarchy only — no skill matrix | — |
 | `HR_COORDINATOR` | Full profile | Full profile + skill matrix | Full profile + skill matrix | Analytics dashboards |
-| `GENERAL_MANAGEMENT` | — | — | — | Aggregate dashboards only |
+| `GENERAL_MANAGEMENT` | Full profile | Full profile + skill matrix | Full profile + skill matrix | Analytics dashboards |
 
 **Guesses applied:**
 
 - Line Managers and Tech Leads **cannot** see skill matrices of employees outside their team. This is enforced server-side — the profile API strips skill data for non-subordinates (see `backend.instructions.md`).
 - Employees can browse the org directory (name, department, title, org chart position) for all 1,400 employees, but **cannot** see anyone else's skill matrix.
-- `GENERAL_MANAGEMENT` sees only aggregate numbers (e.g., headcount per skill, average proficiency per department) — no individual profiles.
+- `GENERAL_MANAGEMENT` has **full read-only visibility** across all profiles and skill matrices, plus aggregate dashboards — but cannot edit anything.
 
 **Change impact if wrong:** If Line Managers should see all skill matrices (e.g., for resource planning across teams), the `view_scope` logic in `app/auth/permissions.py` and the profile API response schema must be updated. No DB schema change needed.
 
