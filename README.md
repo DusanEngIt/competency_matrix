@@ -7,6 +7,29 @@
 
 ---
 
+## Table of Contents
+
+1. [Team & Responsibilities](#1-team--responsibilities)
+2. [Project Overview](#2-project-overview)
+3. [Permission Model](#3-permission-model)
+4. [Skill Taxonomy](#4-skill-taxonomy)
+5. [Excel Import](#5-excel-import)
+6. [Functional Requirements](#6-functional-requirements)
+7. [Search Architecture](#7-search-architecture--fast--low-cost)
+8. [Technical Architecture](#8-technical-architecture)
+9. [Backend — FastAPI](#9-backend--fastapi)
+10. [AI Service](#10-ai-service)
+11. [Frontend — Next.js](#11-frontend--nextjs)
+12. [Data Model](#12-data-model)
+13. [Workday Integration](#13-workday-integration)
+14. [Deployment](#14-deployment)
+15. [Non-Functional Requirements](#15-non-functional-requirements)
+16. [Repository Structure](#16-repository-structure)
+17. [Open Questions](#17-open-questions)
+18. [Milestones](#18-milestones)
+
+---
+
 ## 1. Team & Responsibilities
 
 | Engineer | Role | Owns |
